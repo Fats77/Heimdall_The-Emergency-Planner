@@ -29,9 +29,30 @@
 		EAAEA34B2EA9D32D00D5E9C2 /* HeimdallUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HeimdallUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		0475023C2EB04FDA00001368 /* Exceptions for "Heimdall" folder in "HeimdallTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				LaunchScreenView.storyboard,
+			);
+			target = EAAEA3402EA9D32D00D5E9C2 /* HeimdallTests */;
+		};
+		0475023D2EB04FDA00001368 /* Exceptions for "Heimdall" folder in "HeimdallUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				LaunchScreenView.storyboard,
+			);
+			target = EAAEA34A2EA9D32D00D5E9C2 /* HeimdallUITests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		EAAEA3362EA9D32B00D5E9C2 /* Heimdall */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				0475023C2EB04FDA00001368 /* Exceptions for "Heimdall" folder in "HeimdallTests" target */,
+				0475023D2EB04FDA00001368 /* Exceptions for "Heimdall" folder in "HeimdallUITests" target */,
+			);
 			path = Heimdall;
 			sourceTree = "<group>";
 		};

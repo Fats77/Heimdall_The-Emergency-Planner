@@ -9,7 +9,38 @@ import SwiftUI
 
 struct OnboardingView: View {
     var body: some View {
-        Text(/*@START_MENU_TOKEN@*/"Hello, World!"/*@END_MENU_TOKEN@*/)
+        NavigationStack{
+            VStack(alignment: .leading){
+                Text("Heimdall")
+                    .foregroundStyle(Color.tertiary)
+                    .fontWeight(.heavy)
+                    .font(.title)
+                    .kerning(3.0)
+                
+                Text("Emergency Planner")
+                    .foregroundStyle(Color.tertiary)
+                    .font(.subheadline)
+                
+                VStack (alignment: .leading) {
+                    NavigationLink{
+                        
+                    }label: {
+                        VStack{
+                            Text("Join a plan")
+                        }
+                    }
+                    
+                    NavigationLink{
+                        
+                    }label: {
+                        VStack{
+                            Text("Create new plan")
+                        }
+                    }
+                }
+                .padding(.top, 10)
+            }
+        }
     }
 }
 
