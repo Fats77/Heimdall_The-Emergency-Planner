@@ -9,8 +9,18 @@ import SwiftUI
 
 struct CustomButtonView: View {
     let label: String
+    var symbol: String? = nil
     var body: some View {
-        Text(label)
+        
+        HStack{
+            
+            Text(label)
+            if symbol != nil {
+                Image(systemName: symbol ?? "")
+                
+            }
+        }
+       
             .padding(.vertical)
             .padding(.horizontal, 20)
             .background{
@@ -22,5 +32,5 @@ struct CustomButtonView: View {
 }
 
 #Preview {
-    CustomButtonView(label: "Custom Button")
+    CustomButtonView(label: "Custom Text", symbol: "plus")
 }
