@@ -20,6 +20,7 @@ struct HomeView: View {
         
         NavigationStack {
             ScrollView {
+                //MARK: Header Overview
                 HStack(){
                     Text( "Hello, Imma")
                         .bold()
@@ -27,12 +28,28 @@ struct HomeView: View {
                     Spacer()
                     Image(systemName: "person.crop.circle")
                         .imageScale(.large)
-                      //  .padding(.trailing, 16)
+                    //  .padding(.trailing, 16)
                 }
                 .padding(.trailing, 16)
                 .padding(.horizontal,10)
-               // .border(.black,width: 2)
-               // .padding(.horizontal,10)
+                // .border(.black,width: 2)
+                // .padding(.horizontal,10)
+                //MARK: Drill Plans Header
+                HStack()
+                {
+                    Text("Existing Drill Plans")
+                        .bold()
+                        .padding()
+                    Spacer()
+                    Button{
+                        
+                    }label: {
+                        CustomButtonView(label: "Add New" , symbol: "plus")
+                    }
+                    .padding()
+                    
+                }
+                //MARK: Drill Cards
                 LazyVGrid(columns: columns) {
                     ForEach(1...6, id: \.self) { item in
                         Text("Plan \(item)")
@@ -43,16 +60,18 @@ struct HomeView: View {
                     }
                 }
                 .padding()
+                //MARK: Emergency Contacts
                 HStack(spacing: 8) {
+                    Image(systemName: "phone")
+                        .imageScale(.large)
                     Text("Personal Emergency Contacts")
                         .bold()
-                    Image(systemName: "phone.fill")
-                        .imageScale(.large)
-                        
+                    //.scaleEffect(x:-1 , y:-1)
+                    
                 }
                 .padding(.leading, 20)
                 .frame(maxWidth: .infinity, alignment: .leading)
-                
+                //MARK: Emergency Contact List
                 LazyVGrid(columns: contactColumns, alignment: .leading) {
                     ForEach(["fruit", "car", "plane swift"], id: \.self) { item in
                         Text("Contact for \(item)")
@@ -67,14 +86,17 @@ struct HomeView: View {
                     }
                 }
                 .padding()
+                //MARK: History Section Header
                 HStack(spacing: 10) {
+                    Image(systemName: "clock")
+                        .imageScale(.large)
                     Text("History")
                         .bold()
-                    Image(systemName: "clock.fill")
-                        .imageScale(.large)
+                    
                 }
                 .padding(.leading, 20)
                 .frame(maxWidth: .infinity, alignment: .leading)
+                //MARK: History List
                 VStack(alignment: .leading, spacing: 8) {
                     ForEach(1...6, id: \.self)
                     {
@@ -92,7 +114,7 @@ struct HomeView: View {
                             }
                     }
                     
-                   
+                    
                 }
                 .padding(.horizontal, 20)
                 .frame(maxWidth: .infinity, alignment: .leading)
