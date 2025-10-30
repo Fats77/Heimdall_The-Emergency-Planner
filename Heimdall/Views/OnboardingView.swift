@@ -8,39 +8,39 @@
 import SwiftUI
 
 struct OnboardingView: View {
+    @State private var currentPage = 0
     var body: some View {
-        NavigationStack{
-            VStack(alignment: .leading){
-                Text("Heimdall")
-                    .foregroundStyle(Color.tertiary)
-                    .fontWeight(.heavy)
-                    .font(.title)
-                    .kerning(3.0)
-                
-                Text("Emergency Planner")
-                    .foregroundStyle(Color.tertiary)
-                    .font(.subheadline)
-                
-                VStack (alignment: .leading) {
-                    NavigationLink{
-                        
-                    }label: {
-                        VStack{
-                            Text("Join a plan")
-                        }
-                    }
-                    
-                    NavigationLink{
-                        
-                    }label: {
-                        VStack{
-                            Text("Create new plan")
-                        }
-                    }
-                }
-                .padding(.top, 10)
-            }
+        
+       
+        VStack(alignment: .center, spacing: 10){
+            
+            Image(.helmet)
+                .resizable()
+                .scaledToFit()
+                .clipShape(RoundedRectangle(cornerRadius: 20))
+                .frame(width: 150, height: 150)
+                .padding(50)
+                .shadow(color: .tertiary.opacity(0.7), radius:20, y: 10)
+
+        Text("Welcome to Heimdall")
+           // .font(.headline)
+            .font(.title)
+            .foregroundStyle(Color.secondary2)
+            .fontWeight(.bold)
+        Text("The Emergency Planner")
+                .foregroundStyle(.primary2)
+            .font(.title2)
+            .bold()
+    
+        Text("Your comprehensive disaster preparedness and emergency response platform")
+                .multilineTextAlignment(.center)
+                .foregroundStyle(Color.tertiary)
+                .font(.title3)
+                .padding(.top,50)
         }
+        .padding(40)
+        
+        
     }
 }
 
