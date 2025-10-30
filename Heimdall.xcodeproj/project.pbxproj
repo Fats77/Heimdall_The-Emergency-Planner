@@ -33,6 +33,7 @@
 		EAD6339B2EAAFFAD006C9A22 /* Exceptions for "Heimdall" folder in "HeimdallTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Views/AdminViews/CreatePlan.swift,
 				Views/AdminViews/MemberAttendanceView.swift,
 				Views/Components/ChecklistCardView.swift,
 				Views/CoordinatorViews/AttendanceView.swift,
@@ -45,6 +46,7 @@
 		EAD6339C2EAAFFAD006C9A22 /* Exceptions for "Heimdall" folder in "HeimdallUITests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				Views/AdminViews/CreatePlan.swift,
 				Views/AdminViews/MemberAttendanceView.swift,
 				Views/Components/ChecklistCardView.swift,
 				Views/CoordinatorViews/AttendanceView.swift,
