@@ -15,7 +15,7 @@ struct ContentView: View {
             {HomeView()}
             Tab ("Sccan" , systemImage: "qrcode.viewfinder")
             {
-                AttendanceView()
+                CreatePlan()
             }
            
             

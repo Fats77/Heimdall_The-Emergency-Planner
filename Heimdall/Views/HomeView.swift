@@ -23,7 +23,7 @@ struct HomeView: View {
                 //MARK: Header Overview
                 HStack(){
                     Text( "Hello, Imma")
-                        .bold()
+                        .font(.title)
                         .padding()
                     Spacer()
                     Image(systemName: "person.crop.circle")
@@ -38,7 +38,7 @@ struct HomeView: View {
                 HStack()
                 {
                     Text("Existing Drill Plans")
-                        .bold()
+                        .font(.title2)
                         .padding()
                     Spacer()
                     Button{
@@ -65,7 +65,7 @@ struct HomeView: View {
                     Image(systemName: "phone")
                         .imageScale(.large)
                     Text("Personal Emergency Contacts")
-                        .bold()
+                        .font(.title2)
                     //.scaleEffect(x:-1 , y:-1)
                     
                 }
@@ -91,7 +91,7 @@ struct HomeView: View {
                     Image(systemName: "clock")
                         .imageScale(.large)
                     Text("History")
-                        .bold()
+                        .font(.title2)
                     
                 }
                 .padding(.leading, 20)
