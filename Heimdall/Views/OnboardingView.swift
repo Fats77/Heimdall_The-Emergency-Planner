@@ -11,58 +11,88 @@ struct OnboardingView: View {
     @State private var currentPage = 0
     
     var body: some View {
-        NavigationStack{
-            
-            VStack(alignment: .center){
-               LandingScreenView()
+        NavigationStack {
+            GeometryReader{
+                geo in
+                VStack(alignment: .center) {
+                    TabView(selection: $currentPage) {
+                        LandingScreenView(geometry: geo)
+                        
+                        ForEach(1...2, id: \.self) { index in
+                            LandingScreenView(geometry: geo)
+                        }
+                    }
+                    .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
+                .ignoresSafeArea()
+                .safeAreaInset(edge: .bottom) {
+                    VStack {
+                        HStack(spacing: 8) {
+                            ForEach(0...3, id: \.self) { index in
+                                Capsule()
+                                    .fill(index == currentPage ? Color.secondary2 : Color.gray.opacity(0.3))
+                                    .frame(width: index == currentPage ? 30 : 8,
+                                           height: index == currentPage ? 8 : 8)
+                                    .animation(.spring(), value: currentPage)
+                            }
+                        }
+                        
+                        if currentPage < 3 && currentPage >= 0 {
+                            Button{
+                                if currentPage < 3 {
+                                    withAnimation {
+                                        currentPage += 1
+                                    }
+                                }
+                            }label: {
+                                CustomButtonView(label: "Next", fillWidth: true)
+                                    .padding()
+                            }
+                        } else {
+                            NavigationLink{
+                                HomeView()
+                            } label: {
+                                CustomButtonView(label: "Start", fillWidth: true)
+                                    .padding()
+                            }
+                        }
+                    }
+                }
             }
-            
         }
     }
 }
 
 struct LandingScreenView: View {
+    var geometry: GeometryProxy
+    
     var body: some View {
-        ZStack {
-            GeometryReader{
-                geo in
-//                Rectangle()
-//                    .fill(Color.theme)
-//                    .frame(width: 600, height: 2000)
-//                    .position(x: geo.size.width / 2, y: 10)
-                
-                Image(.helmet)
-                    .resizable()
-                    .scaledToFit()
-                    .clipShape(RoundedRectangle(cornerRadius: 30))
-                    .frame(width: 150, height: 150)
-                    .shadow(color: Color.tertiary.opacity(0.8), radius: 20, y: 10)
-                    .position(x: geo.size.width / 2, y: geo.size.height / 3)
-                
-                Text("Heimdall")
-                    .kerning(4.0)
-                    .font(.title)
-                    .foregroundStyle(Color.white)
-                    .fontWeight(.bold)
-                    .position(x: geo.size.width / 2, y: geo.size.height / 2)
-                Text("Emergency Planner")
-                    .foregroundStyle(.white.opacity(0.5))
-                    .font(.title2)
-                    .position(x: geo.size.width / 2, y: geo.size.height / 1.85)
-                
-                Text("Your comprehensive disaster preparedness and emergency response platform")
-                    .multilineTextAlignment(.center)
-                    .foregroundStyle(Color.white.opacity(0.7))
-                    .font(.title3)
-                    .position(x: geo.size.width / 2, y: geo.size.height / 1.55)
-                    .frame(width: geo.size.width / 1.2)
-            }
+        VStack{
+            Image(.helmet)
+                .resizable()
+                .scaledToFit()
+                .clipShape(RoundedRectangle(cornerRadius: 30))
+                .frame(width: 150, height: 150)
+                .shadow(color: Color.tertiary.opacity(0.8), radius: 20, y: 10)
+                .padding(.top, -100)
+            
+            Text("Heimdall")
+                .kerning(4.0)
+                .font(.title)
+                .fontWeight(.bold)
+            
+            Text("Emergency Planner")
+                .foregroundStyle(Color.black.opacity(0.5))
+                .font(.title2)
+            
+            Text("Your comprehensive disaster preparedness and emergency response platform")
+                .multilineTextAlignment(.center)
+                .foregroundStyle(Color.black.opacity(0.7))
+                .font(.title3)
+                .frame(width: geometry.size.width / 1.2)
+                .padding(.top)
         }
-        .background{
-            PrimaryGradientView()
-        }
-        .ignoresSafeArea()
-        
     }
 }
 

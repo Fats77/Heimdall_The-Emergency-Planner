@@ -119,6 +119,7 @@ struct HomeView: View {
                 .padding(.horizontal, 20)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .navigationBarBackButtonHidden(true)
         }
         
         
