@@ -8,18 +8,20 @@
 import SwiftUI
 
 struct ContentView: View {
+    @AppStorage("isOnboarding") var isOnboarding: Bool = true
+    
     var body: some View {
-        TabView {
-            
-            Tab ( "Overview", systemImage: "bolt")
-            {HomeView()}
-            Tab ("Sccan" , systemImage: "qrcode.viewfinder")
-            {
-                CreatePlan()
+        if isOnboarding {
+            OnboardingView()
+        } else {
+            TabView {
+                Tab ( "Overview", systemImage: "bolt"){
+                    HomeView()
+                }
+                Tab ("Sccan" , systemImage: "qrcode.viewfinder"){
+                    AttendanceView()
+                }
             }
-           
-            
-            
         }
     }
     

@@ -9,127 +9,170 @@ import SwiftUI
 
 struct OnboardingView: View {
     @State private var currentPage = 0
+    @AppStorage("isOnboarding") var isOnboarding: Bool?
+    
+    let onboardingItemViews = [
+        [
+            "","",""
+        ],
+        [
+            "Emergency Alerts",
+            "Receive instant notifications for emergencies and critical situations in your area",
+            "exclamationmark.triangle"
+        ],
+        [
+            "Safety Drills",
+            "Schedule and participate in regular emergency preparedness drills with your team",
+            "calendar"
+        ],
+        [
+            "Response Plans",
+            "Access detailed evacuation routes and emergency protocols for any situation",
+            "mappin"
+        ],
+    ]
+    
+    let iconBackgrounds = [
+        [
+            Color.red,
+            Color.orange
+        ],
+        [
+            Color.red,
+            Color.orange
+        ],
+        [
+            Color.purple,
+            Color.blue
+        ],
+        [
+            Color.blue,
+            Color.cyan
+        ],
+    ]
     
     var body: some View {
-        NavigationStack {
-            GeometryReader{
-                geo in
-                VStack(alignment: .center) {
-                    TabView(selection: $currentPage) {
-                        LandingScreenView(geometry: geo)
-                        
-                        ForEach(1...2, id: \.self) { index in
-                            LandingScreenView(geometry: geo)
+        GeometryReader { geo in
+            TabView(selection: $currentPage) {
+                ForEach(Array(onboardingItemViews).enumerated(), id: \.offset) { index, onboardingItem in
+                    OnboardingItemView(title: onboardingItem[0], description: onboardingItem[1], geometry: geo, iconBackgrounds: iconBackgrounds[index], symbol: onboardingItem[2], index: index, currentPage: $currentPage, maxOnboardingItem: onboardingItemViews.count
+                    )
+                    .tag(index)
+                }
+            }
+            .safeAreaInset(edge: .bottom) {
+                VStack {
+                    HStack(spacing: 8) {
+                        ForEach(0...onboardingItemViews.count - 1, id: \.self) { index in
+                            Capsule()
+                                .fill(index == currentPage ? Color.secondary2 : Color.gray.opacity(0.3))
+                                .frame(width: index == currentPage ? 30 : 8,
+                                       height: index == currentPage ? 8 : 8)
+                                .animation(.spring(), value: currentPage)
                         }
                     }
-                    .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
-                }
-                .frame(maxWidth: .infinity, maxHeight: .infinity)
-                .ignoresSafeArea()
-                .safeAreaInset(edge: .bottom) {
-                    VStack {
-                        HStack(spacing: 8) {
-                            ForEach(0...3, id: \.self) { index in
-                                Capsule()
-                                    .fill(index == currentPage ? Color.secondary2 : Color.gray.opacity(0.3))
-                                    .frame(width: index == currentPage ? 30 : 8,
-                                           height: index == currentPage ? 8 : 8)
-                                    .animation(.spring(), value: currentPage)
+                    
+                    HStack (alignment: .center, spacing: 10){
+                        if currentPage > 0 {
+                            Button{
+                                withAnimation {
+                                    currentPage -= 1
+                                }
+                            }label: {
+                                CustomButtonView(label: "Back", fillWidth: true, type: 2)
                             }
                         }
                         
-                        if currentPage < 3 && currentPage >= 0 {
+                        if currentPage < onboardingItemViews.count - 1 && currentPage >= 0 {
                             Button{
-                                if currentPage < 3 {
-                                    withAnimation {
-                                        currentPage += 1
-                                    }
+                                withAnimation {
+                                    currentPage += 1
                                 }
                             }label: {
                                 CustomButtonView(label: "Next", fillWidth: true)
-                                    .padding()
                             }
                         } else {
-                            NavigationLink{
-                                HomeView()
+                            Button{
+                                isOnboarding = false
                             } label: {
                                 CustomButtonView(label: "Start", fillWidth: true)
-                                    .padding()
                             }
                         }
                     }
+                    .padding()
                 }
             }
-        }
-    }
-}
-
-struct LandingScreenView: View {
-    var geometry: GeometryProxy
-    
-    var body: some View {
-        VStack{
-            Image(.helmet)
-                .resizable()
-                .scaledToFit()
-                .clipShape(RoundedRectangle(cornerRadius: 30))
-                .frame(width: 150, height: 150)
-                .shadow(color: Color.tertiary.opacity(0.8), radius: 20, y: 10)
-                .padding(.top, -100)
-            
-            Text("Heimdall")
-                .kerning(4.0)
-                .font(.title)
-                .fontWeight(.bold)
-            
-            Text("Emergency Planner")
-                .foregroundStyle(Color.black.opacity(0.5))
-                .font(.title2)
-            
-            Text("Your comprehensive disaster preparedness and emergency response platform")
-                .multilineTextAlignment(.center)
-                .foregroundStyle(Color.black.opacity(0.7))
-                .font(.title3)
-                .frame(width: geometry.size.width / 1.2)
-                .padding(.top)
+            .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
+            .padding(.bottom)
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .ignoresSafeArea()
         }
     }
 }
 
 struct OnboardingItemView: View {
-    var title: String
-    var subtitle: String
-    var description: String
+    let title: String
+    let description: String
+    let geometry: GeometryProxy
+    let iconBackgrounds: [Color]
+    let symbol: String
     let index: Int
+    @Binding var currentPage: Int
+    let maxOnboardingItem: Int
     
     var body: some View{
-        VStack(alignment: .center, spacing: 10){
-            
-            Image(.helmet)
-                .resizable()
-                .scaledToFit()
-                .clipShape(RoundedRectangle(cornerRadius: 20))
-                .frame(width: 150, height: 150)
-                .padding(50)
-                .shadow(color: .tertiary.opacity(0.7), radius:20, y: 10)
-
-            Text(title)
-                .font(.title)
-                .foregroundStyle(Color.secondary2)
-                .fontWeight(.bold)
-            
-            Text(subtitle)
-                .foregroundStyle(.primary2)
-                .font(.title2)
-                .bold()
-        
-            Text(description)
+        VStack{
+            if index > 0 {
+                Image(systemName: symbol)
+                    .font(.system(size:60))
+                    .frame(width: 150, height: 150)
+                    .background{
+                        LinearGradient(gradient: Gradient(colors: [iconBackgrounds[0], iconBackgrounds[1]]), startPoint: .topLeading, endPoint: .bottomTrailing)
+                    }
+                    .clipShape(RoundedRectangle(cornerRadius: 30))
+                    .shadow(color: Color.tertiary.opacity(0.8), radius: 20, y: 10)
+                    .padding(.top, -100)
+                    .padding(.bottom)
+                    .foregroundStyle(Color.white)
+                
+                Text(title)
+                    .kerning(4.0)
+                    .font(.title)
+                    .fontWeight(.bold)
+                
+                Text(description)
                     .multilineTextAlignment(.center)
-                    .foregroundStyle(Color.tertiary)
+                    .foregroundStyle(Color.black.opacity(0.7))
                     .font(.title3)
-                    .padding(.top,50)
+                    .frame(width: geometry.size.width / 1.2)
+                    .padding(.top)
+            } else {
+                Image(.helmet)
+                    .resizable()
+                    .scaledToFit()
+                    .clipShape(RoundedRectangle(cornerRadius: 30))
+                    .frame(width: 150, height: 150)
+                    .shadow(color: Color.tertiary.opacity(0.8), radius: 20, y: 10)
+                    .padding(.top, -100)
+                
+                Text("Heimdall")
+                    .kerning(4.0)
+                    .font(.title)
+                    .fontWeight(.bold)
+                
+                Text("Emergency Planner")
+                    .foregroundStyle(Color.black.opacity(0.5))
+                    .font(.title2)
+                
+                Text("Your comprehensive disaster preparedness and emergency response platform")
+                    .multilineTextAlignment(.center)
+                    .foregroundStyle(Color.black.opacity(0.7))
+                    .font(.title3)
+                    .frame(width: geometry.size.width / 1.2)
+                    .padding(.top)
+            }
         }
-        .padding(40)
+        .frame(maxHeight: .infinity)
     }
 }
 
