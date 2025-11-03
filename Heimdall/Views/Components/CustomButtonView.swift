@@ -18,7 +18,7 @@ struct CustomButtonView: View {
      2 -> Secondary
      3 -> Tertiary
      */
-    var type: Int = 1
+    var type: Int = 2
     
     var isDisabled: Bool = false
     

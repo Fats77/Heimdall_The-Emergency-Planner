@@ -37,11 +37,13 @@
 				Views/AdminViews/CreatePlan.swift,
 				Views/AdminViews/MemberAttendanceView.swift,
 				Views/Components/ChecklistCardView.swift,
+				Views/Components/CustomDayTimeView.swift,
 				Views/CoordinatorViews/AttendanceView.swift,
 				Views/DrillDetailView.swift,
 				Views/HomeView.swift,
 				Views/OnboardingView.swift,
 				Views/PersonalAttendanceView.swift,
+				Views/ProfileView.swift,
 			);
 			target = EAAEA3402EA9D32D00D5E9C2 /* HeimdallTests */;
 		};
@@ -52,11 +54,13 @@
 				Views/AdminViews/CreatePlan.swift,
 				Views/AdminViews/MemberAttendanceView.swift,
 				Views/Components/ChecklistCardView.swift,
+				Views/Components/CustomDayTimeView.swift,
 				Views/CoordinatorViews/AttendanceView.swift,
 				Views/DrillDetailView.swift,
 				Views/HomeView.swift,
 				Views/OnboardingView.swift,
 				Views/PersonalAttendanceView.swift,
+				Views/ProfileView.swift,
 			);
 			target = EAAEA34A2EA9D32D00D5E9C2 /* HeimdallUITests */;
 		};

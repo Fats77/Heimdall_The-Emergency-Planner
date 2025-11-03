@@ -15,11 +15,12 @@ struct ChecklistCardView: View {
                 .resizable()
                 .clipShape(RoundedRectangle(cornerRadius:3))
                 .frame(width: 80, height: 80)
+                .padding(.trailing)
                 
             HStack {
                 VStack(alignment: .leading){
                     
-                    Text("John Doe")
+                    Text("Imma 🐣 ")
                         .font(.title3)
                         .bold()
                     
@@ -49,7 +50,7 @@ struct ChecklistCardView: View {
                     }
                     label:
                     {
-                        Text("Check In")
+                        Text("Check")
                         Image(systemName: "person.fill.checkmark")
     
                     }
@@ -88,11 +89,11 @@ struct ChecklistCardView: View {
            // .padding()
         }
         .padding()
+        .dynamicTypeSize(...DynamicTypeSize.xLarge)
         .background{
             Color.gray.opacity(0.2)
         }
         .clipShape(RoundedRectangle(cornerRadius: 10))
-    
     }
         
 }

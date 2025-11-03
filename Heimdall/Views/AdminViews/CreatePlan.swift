@@ -20,6 +20,7 @@ struct CreatePlan: View {
         GeometryReader { geo in
             ScrollView{
                 Text ("Select Icon").frame(maxWidth: .infinity , alignment: .leading)
+                    .dynamicTypeSize(...DynamicTypeSize.accessibility1)
                     .padding()
                     .font(.title)
                 HStack(){
@@ -43,6 +44,7 @@ struct CreatePlan: View {
                                 }
                             }
                         }
+                        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
                        
                         .frame(width: geo.size.width / 6, height: geo.size.width / 6)
                         .background(.white)
@@ -55,6 +57,7 @@ struct CreatePlan: View {
                 }
                 
                 Text ("Details")
+                    .dynamicTypeSize(...DynamicTypeSize.accessibility1)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .font(.title)
                     .padding(.leading)
@@ -86,6 +89,7 @@ struct CreatePlan: View {
                     
                     
                 }
+                .dynamicTypeSize(...DynamicTypeSize.accessibility1)
                 .padding(.horizontal, 20)
             }
         }

@@ -8,6 +8,13 @@
 import SwiftUI
 
 struct CreateInstruction: View {
+    @State private var emergencyType =  "Pick Emergency"
+    @State private var drillDuraion = "Select Duration"
+    let emergencyData = ["Pick Emergency", "Earthquake", "Fire", "Tsunami"]
+    let drillDurations  = [
+        "Select Duration" , "Monthly" , "Quaterly" , "Annually"
+    ]
+    
     var body: some View {
        
         ScrollView{
@@ -19,20 +26,66 @@ struct CreateInstruction: View {
                     .padding()
                     .font(.title)
                     .bold()
+                    
                 
                 HStack {
-                    Picker(selection: /*@START_MENU_TOKEN@*/.constant(1)/*@END_MENU_TOKEN@*/, label: /*@START_MENU_TOKEN@*/Text("Picker")/*@END_MENU_TOKEN@*/) {
-                        Text("Fire").tag(1)
-                        Text("Earthquake").tag(2)
+                    Picker("Pick Emergency", selection: $emergencyType) {
+                        ForEach (emergencyData, id: \.self )
+                        {
+                            emergency in
+                            Text(emergency)
+                            
+                            
+                        }
+                        
                     }
-                    .foregroundStyle(.black)
+                    .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+                    .tint(.black)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    .background(.white)
+                    .cornerRadius(8)
+                    .shadow(color: .black.opacity(0.5),radius: 5)
+                    
                 }
+                .foregroundStyle(Color.black)
+                .padding(.top, 3)
+                .padding()
+                
+                    Text ("Schedule")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.leading)
+                        .font(.title2)
+                        .bold()
+                VStack (alignment: .leading){
+                    Picker("Pick Duration", selection: $drillDuraion) {
+                        ForEach (drillDurations, id: \.self )
+                        {
+                            item in
+                            Text(item)
+                                
+                        }
+                        
+                    }
+                    .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding()
+                    .background(.white)
+                    .cornerRadius(8)
+                    .shadow(color: .black.opacity(0.5),radius: 5)
+                    
+                    .tint(.black)
+                 CustomDayTimeView()
+                               
+                }
+                .padding(.horizontal)
+                    
+                
+                
+                
             }
             
-            
         }
-        
-        
         
     }
 }
