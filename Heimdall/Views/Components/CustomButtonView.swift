@@ -32,15 +32,25 @@ struct CustomButtonView: View {
         .if(fillWidth) { view in
             view.frame(maxWidth: .infinity)
         }
-        .padding(.vertical)
-        .padding(.horizontal, 20)
+        .font(.body)
+        .padding(.vertical,10)
+        .padding(.horizontal, 12)
         .background{
             if type == 1 {
                 PrimaryGradientView()
             }
         }
+        .overlay{
+            if type == 2 {
+                RoundedRectangle(cornerRadius: 10)
+                    .stroke(
+                        LinearGradient(gradient: Gradient(colors: [.secondary2, .theme]), startPoint: .topLeading, endPoint: .bottomTrailing)
+                        ,lineWidth: 3
+                    )
+            }
+        }
         .clipShape(RoundedRectangle(cornerRadius: 10))
-        .foregroundStyle(type == 1 ? Color.white : type == 2 ? Color.tertiary : Color.black)
+        .foregroundStyle(type == 1 ? Color.white : type == 2 ? Color.secondary2 : Color.black)
         .if(type == 3) { view in
             view.underline()
         }

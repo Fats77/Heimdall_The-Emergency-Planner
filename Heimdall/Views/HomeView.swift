@@ -23,43 +23,46 @@ struct HomeView: View {
                 //MARK: Header Overview
                 HStack(){
                     Text( "Hello, Imma")
+                        .font(.title)
                         .bold()
-                        .padding()
                     Spacer()
                     Image(systemName: "person.crop.circle")
-                        .imageScale(.large)
-                    //  .padding(.trailing, 16)
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 30)
                 }
-                .padding(.trailing, 16)
-                .padding(.horizontal,10)
-                // .border(.black,width: 2)
-                // .padding(.horizontal,10)
+                .padding(.horizontal)
+                .padding(.vertical)
+                
                 //MARK: Drill Plans Header
-                HStack()
-                {
-                    Text("Existing Drill Plans")
-                        .bold()
-                        .padding()
-                    Spacer()
-                    Button{
+                VStack{
+                    HStack()
+                    {
+                        Text("Existing Drill Plans")
                         
-                    }label: {
-                        CustomButtonView(label: "Add New" , symbol: "plus")
+                        Spacer()
+                        
+                        Button {
+                            
+                        } label: {
+                            CustomButtonView(label: "New" , symbol: "plus")
+                        }
+                        
+                    }
+                    .padding(.horizontal)
+                    //MARK: Drill Cards
+                    LazyVGrid(columns: columns) {
+                        ForEach(1...6, id: \.self) { item in
+                            Text("Plan \(item)")
+                                .frame(width: 120, height: 170)
+                                .background(.white)
+                                .cornerRadius(8)
+                        }
                     }
                     .padding()
-                    
                 }
-                //MARK: Drill Cards
-                LazyVGrid(columns: columns) {
-                    ForEach(1...6, id: \.self) { item in
-                        Text("Plan \(item)")
-                            .frame(width: 120, height: 200)
-                            .background(.white)
-                            .cornerRadius(8)
-                            .shadow(color: .gray.opacity(0.5),radius: 5)
-                    }
-                }
-                .padding()
+                .padding(.vertical)
+                .background(Color.tertiary.opacity(0.3))
                 //MARK: Emergency Contacts
                 HStack(spacing: 8) {
                     Image(systemName: "phone")
