@@ -14,7 +14,7 @@ struct CreatePlan: View {
     
     @State private var descText:String = ""
     
-    var nums = ["a","b","55","ygyvfyhfyhf"]
+    var nums = ["a","b","55","nk"]
     
     var body: some View {
         GeometryReader { geo in
@@ -36,11 +36,12 @@ struct CreatePlan: View {
                                 {
                                     Image(systemName: "plus")
                                         .frame(width: 100, height: 100)
-                                        .background(.white)
+                                      //  .background(.white)
                                         .cornerRadius(8)
                                         .foregroundStyle(Color.black)
                                         .fontWeight(.bold)
                                         .shadow(color: .gray.opacity(0.5),radius: 5)
+                                    
                                 }
                             }
                         }
@@ -48,8 +49,10 @@ struct CreatePlan: View {
                        
                         .frame(width: geo.size.width / 6, height: geo.size.width / 6)
                         .background(.white)
+                        .foregroundStyle(Color.black)
                         .cornerRadius(8)
                         .shadow(color: .gray.opacity(0.5),radius: 5)
+                        
                         
                         
                     }
@@ -60,6 +63,7 @@ struct CreatePlan: View {
                     .dynamicTypeSize(...DynamicTypeSize.accessibility1)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .font(.title)
+                   
                     .padding(.leading)
                     .padding(.top,20)
                 Spacer()
@@ -70,15 +74,17 @@ struct CreatePlan: View {
                     
                     TextField("Enter name here", text: $descText)
                         .padding(.leading)
+                       
                         .frame(maxWidth: .infinity, alignment: .leading)
                         .padding()
-                        .background(.white)
-                        .cornerRadius(8)
+                      //  .border(.black)
+                      .background(.white)
+                        .cornerRadius(4)
                         .shadow(color: .black.opacity(0.5),radius: 5)
                     Text ("Description")
                         .padding(.top,10)
                         .frame(maxWidth: .infinity, alignment: .leading)
-                    // TextField("Enter description here", text: /*@START_MENU_TOKEN@*//*@PLACEHOLDER=Value@*/.constant("")/*@END_MENU_TOKEN@*/)
+         
                     TextEditor(text: $descText)
                         .padding(.leading)
                         .frame(maxWidth: .infinity, alignment: .leading)

@@ -25,8 +25,8 @@ struct ChecklistCardView: View {
                         .bold()
                     
                     Text("Member")
-                        .bold()
-                        .foregroundStyle(.black.opacity(0.6))
+                        .opacity(0.6)
+                      //  .foregroundStyle(.black.opacity(0.6))
                 }
                 
                 Spacer()

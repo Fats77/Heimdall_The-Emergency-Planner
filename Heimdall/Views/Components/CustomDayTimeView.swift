@@ -10,6 +10,7 @@ import SwiftUI
 struct CustomDayTimeView: View {
     @State var selectedDay = Calendar.current.component(.day, from: Date())
     @Environment(\.dynamicTypeSize) var dynamicTypeSize
+    @Environment(\.colorScheme) var colorScheme
     @State private var selectedTime = Date()
     
     var body: some View {
@@ -26,14 +27,21 @@ struct CustomDayTimeView: View {
                         
                     }
                 }
-               
+                
                 .background(.gray.opacity(0.2))
                 .clipShape(Capsule())
                 .pickerStyle(.menu)
-                .tint(Color.black)
+          
+                .if(colorScheme == .dark, transform: { view in
+                    view.tint(Color.white)
+                })
+                .if(colorScheme != .dark, transform: { view in
+                    view.tint(Color.black)
+                })
+                
             }
             .dynamicTypeSize(...DynamicTypeSize.accessibility1)
-            .padding(.horizontal)
+            
             .frame(maxWidth: .infinity, alignment: .leading)
             //.background(Color.gray.opacity(0.4))
             .clipShape(RoundedRectangle(cornerRadius: 10))
@@ -44,7 +52,7 @@ struct CustomDayTimeView: View {
             .dynamicTypeSize(...DynamicTypeSize.accessibility1)
                 .tint(.black)
                 .frame(maxWidth: .infinity)
-                .padding(.horizontal)
+                .padding(.leading)
                // .background(Color.gray.opacity(0.4))
                 .clipShape(RoundedRectangle(cornerRadius: 10))
         }

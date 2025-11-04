@@ -99,9 +99,11 @@ struct OnboardingView: View {
                             }
                         }
                     }
+                    
                     .padding()
                 }
             }
+            .dynamicTypeSize(...DynamicTypeSize.accessibility1)
             .tabViewStyle(PageTabViewStyle(indexDisplayMode: .never))
             .padding(.bottom)
             .frame(maxWidth: .infinity, maxHeight: .infinity)
@@ -136,13 +138,14 @@ struct OnboardingItemView: View {
                     .foregroundStyle(Color.white)
                 
                 Text(title)
+                    .multilineTextAlignment(.center)
                     .kerning(4.0)
                     .font(.title)
                     .fontWeight(.bold)
                 
                 Text(description)
                     .multilineTextAlignment(.center)
-                    .foregroundStyle(Color.black.opacity(0.7))
+                    .opacity(0.7)
                     .font(.title3)
                     .frame(width: geometry.size.width / 1.2)
                     .padding(.top)
@@ -161,18 +164,19 @@ struct OnboardingItemView: View {
                     .fontWeight(.bold)
                 
                 Text("Emergency Planner")
-                    .foregroundStyle(Color.black.opacity(0.5))
+                    .opacity(0.5)
                     .font(.title2)
                 
                 Text("Your comprehensive disaster preparedness and emergency response platform")
                     .multilineTextAlignment(.center)
-                    .foregroundStyle(Color.black.opacity(0.7))
+                    .opacity(0.7)
                     .font(.title3)
                     .frame(width: geometry.size.width / 1.2)
                     .padding(.top)
             }
         }
         .frame(maxHeight: .infinity)
+        
     }
 }
 

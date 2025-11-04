@@ -8,6 +8,8 @@
 import SwiftUI
 
 struct ProfileView: View {
+    @Environment(\.colorScheme) var colorScheme
+    @Environment(\.dynamicTypeSize) var dynamicTypeSize
     var body: some View {
         NavigationStack {
             VStack(){
@@ -20,16 +22,26 @@ struct ProfileView: View {
                         .resizable()
                         .scaledToFit()
                         .frame(width: 150, height: 150)
-                        .foregroundStyle(Color.black)
+                       // .foregroundStyle(Color.gray)
                         .fontWeight(.bold)
                         .shadow(color: .gray.opacity(0.9),radius: 9)
+                    
                 }
                 Text( "Hello, Imma")
                     .font(.title)
                     .padding()
                 Text ("imma323.33@gmail.com")
-                    .tint(.black)
+                
+                   
             }
+            .dynamicTypeSize(...DynamicTypeSize.accessibility2)
+            
+            .if(colorScheme == .dark, transform: { view in
+                view.tint(Color.white)
+            })
+            .if(colorScheme != .dark, transform: { view in
+                view.tint(Color.black)
+            })
             
             List {
                 NavigationLink
@@ -66,10 +78,11 @@ struct ProfileView: View {
                     Text("A Second List Item")
                     
                 }
-                
+            
                 
                 
             }
+            .dynamicTypeSize(...DynamicTypeSize.accessibility2)
         }
             }
         }

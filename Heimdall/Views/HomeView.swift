@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct HomeView: View {
-    
+    @Environment(\.dynamicTypeSize) var dynamicTypeSize
     let columns: [GridItem] = [
         GridItem(.flexible()) , GridItem(.flexible()) ,GridItem(.flexible())
     ]
@@ -49,6 +49,7 @@ struct HomeView: View {
                         }
                         
                     }
+                    .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
                     .padding(.horizontal)
                     //MARK: Drill Cards
                     LazyVGrid(columns: columns) {
@@ -56,11 +57,16 @@ struct HomeView: View {
                             Text("Plan \(item)")
                                 .frame(width: 120, height: 170)
                                 .background(.white)
+                                .foregroundStyle(Color.black)
                                 .cornerRadius(8)
                         }
                     }
+                    .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+
                     .padding()
                 }
+                .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+
                 .padding(.vertical)
                 .background(Color.tertiary.opacity(0.3))
                 //MARK: Emergency Contacts
@@ -72,6 +78,8 @@ struct HomeView: View {
                     //.scaleEffect(x:-1 , y:-1)
                     
                 }
+                .dynamicTypeSize(...DynamicTypeSize.xLarge)
+
                 .padding(.leading, 20)
                 .frame(maxWidth: .infinity, alignment: .leading)
                 //MARK: Emergency Contact List
@@ -83,11 +91,14 @@ struct HomeView: View {
                             .padding(.horizontal, 10)
                             .padding(.vertical, 15)
                             .frame(maxWidth: .infinity)
+                            .foregroundStyle(Color.black)
                             .background(.white)
                             .cornerRadius(8)
                             .shadow(color: .gray.opacity(0.5),radius: 5)
                     }
                 }
+                //.dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+
                 .padding()
                 //MARK: History Section Header
                 HStack(spacing: 10) {
@@ -108,6 +119,7 @@ struct HomeView: View {
                             .frame(maxWidth: .infinity , alignment: .leading)
                             .padding(.horizontal, 10)
                             .padding(.vertical, 8)
+                            .foregroundStyle(Color.black)
                             .background(.white)
                             .cornerRadius(8)
                             .shadow(color: .gray.opacity(0.5),radius: 5)
@@ -122,6 +134,8 @@ struct HomeView: View {
                 .padding(.horizontal, 20)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }
+            .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+
             .navigationBarBackButtonHidden(true)
         }
         
