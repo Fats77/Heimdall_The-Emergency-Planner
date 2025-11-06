@@ -9,95 +9,151 @@ import SwiftUI
 
 struct CreatePlan: View {
     let columns: [GridItem] = [
-        GridItem(.flexible()) , GridItem(.flexible()) ,GridItem(.flexible()),GridItem(.flexible()),GridItem(.flexible())
+        GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())
     ]
     
-    @State private var descText:String = ""
+    @Environment(\.colorScheme) var colorScheme
     
-    var nums = ["a","b","55","nk"]
+    @State private var descText: String = ""
+    
+    var nums = ["a", "b", "55"]
+    
+    private let accentColor = Color(red: 0.23, green: 0.59, blue: 0.59)
     
     var body: some View {
         GeometryReader { geo in
-            ScrollView{
-                Text ("Select Icon").frame(maxWidth: .infinity , alignment: .leading)
-                    .dynamicTypeSize(...DynamicTypeSize.accessibility1)
-                    .padding()
-                    .font(.title)
-                HStack(){
-                    LazyVGrid(columns: columns,spacing: 10) {
-                        ForEach(Array(nums).enumerated(), id: \.offset) { index, num in
-                            Text("icon \(num)")
+            ScrollView {
+                VStack(spacing: 24) {
+                    // Header
+                    VStack(alignment: .leading, spacing: 6) {
+                        Text("Create Plan")
+                            .font(.largeTitle.bold())
+                            .foregroundColor(.primary)
+                        Text("Set up your next mission with clarity and precision.")
+                            .font(.subheadline)
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    
+                    // Card container
+                    VStack(spacing: 32) {
+                        
+                        // Select Icon Section
+                        VStack(alignment: .leading, spacing: 16) {
+                            Text("Select Icon")
+                                .font(.title2.bold())
                             
-                            if index == nums.count-1 {
-                                Button{
+                            LazyVGrid(columns: columns, spacing: 16) {
+                                ForEach(Array(nums).enumerated(), id: \.offset) { index, num in
+                                    ZStack (alignment: .center){
+                                        RoundedRectangle(cornerRadius: 12)
+                                            .fill(
+                                                LinearGradient(
+                                                    gradient: Gradient(colors: [Color.white,
+                                                        Color(.systemGray5)]),
+                                                    startPoint: .topLeading,
+                                                    endPoint: .bottomTrailing
+                                                )
+                                            )
+                                           .shadow(color: Color.black.opacity(0.08), radius: 4, x: 0, y: 2)
+                                           
+                                        
+                                        if index == nums.count - 1 {
+                                            Button {
+                                                // Add icon action
+                                            } label: {
+                                                Image(systemName: "plus")
+                                                    .font(.system(size: 28, weight: .bold))
+                                                   .foregroundColor(.white)
+                                                    .frame(width: geo.size.width / 6 - 12, height: geo.size.width / 6 - 12)
+                                                    .background(accentColor)
+                                                    .clipShape(Circle())
+                                                   .shadow(color: accentColor.opacity(0.4), radius: 6, x: 0, y: 3)
+                                            }
+                                        } else {
+                                            Text("icon \(num)")
+                                                .font(.body)
+                                              
+                                        }
+                                    }
                                     
-                                }
-                                label :
-                                {
-                                    Image(systemName: "plus")
-                                        .frame(width: 100, height: 100)
-                                      //  .background(.white)
-                                        .cornerRadius(8)
-                                        .foregroundStyle(Color.black)
-                                        .fontWeight(.bold)
-                                        .shadow(color: .gray.opacity(0.5),radius: 5)
-                                    
+                                    .frame(width: geo.size.width / 4.3, height: geo.size.width / 4.3)
+                                    .background(accentColor)
+                                    .clipShape(Circle())
+                                   .shadow(color: accentColor.opacity(0.4), radius: 6, x: 0, y: 3)
                                 }
                             }
                         }
-                        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
-                       
-                        .frame(width: geo.size.width / 6, height: geo.size.width / 6)
-                        .background(.white)
-                        .foregroundStyle(Color.black)
-                        .cornerRadius(8)
-                        .shadow(color: .gray.opacity(0.5),radius: 5)
                         
-                        
-                        
+                        // Details Section
+                        VStack(alignment: .leading, spacing: 24) {
+                            Text("Details")
+                                .font(.title2.bold())
+//                                .foregroundColor(.primary)
+                            
+                            VStack(alignment: .leading, spacing: 16) {
+                                Text("Name")
+                                    .font(.headline)
+//                                    .foregroundColor(.primary)
+                                
+                                TextField("Enter name here", text: $descText)
+                                    .padding(12)
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(12)
+                                    .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+                                    .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+                            }
+                            
+                            VStack(alignment: .leading, spacing: 16) {
+                                Text("Description")
+                                    .font(.headline)
+//                                    .foregroundColor(.primary)
+                                
+                                TextEditor(text: $descText)
+                                    .scrollContentBackground(.hidden)
+                                    .padding(8)
+                                    .background(Color(.systemGray6))
+                                    .cornerRadius(12)
+                                    .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+                                    .frame(minHeight: 100)
+                                    .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+                            }
+                            
+                            VStack(alignment: .leading) {
+                                Text("Drill")
+                                    //.padding()
+                                    .font(.headline)
+                                    .foregroundColor(.primary)
+                                
+                                Button(action: {
+                                    // Upload map action
+                                }) {
+                                    HStack {
+                                        Text("Upload the map")
+                                            .font(.body)
+                                            .foregroundColor(.primary)
+                                        Spacer()
+                                        Image(systemName: "square.and.arrow.down")
+                                            .font(.title2)
+                                            .foregroundColor(accentColor)
+                                    }
+                                    .padding()
+                                    .background(colorScheme == .light ? Color.white : Color(.systemGray6))
+                                    .cornerRadius(12)
+                                    .shadow(color: Color.black.opacity(0.1), radius: 6, x: 0, y: 3)
+                                }
+                            }
+                        }
                     }
-                    .padding(.horizontal,20)
+                    .padding(24)
+                    .background(colorScheme == .dark ? Color.clear : Color.white)
+                    .cornerRadius(20)
+                    .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
                 }
-                
-                Text ("Details")
-                    .dynamicTypeSize(...DynamicTypeSize.accessibility1)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    .font(.title)
-                   
-                    .padding(.leading)
-                    .padding(.top,20)
-                Spacer()
-                
-                VStack {
-                    Text ("Name")
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                    
-                    TextField("Enter name here", text: $descText)
-                        .padding(.leading)
-                       
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding()
-                      //  .border(.black)
-                      .background(.white)
-                        .cornerRadius(4)
-                        .shadow(color: .black.opacity(0.5),radius: 5)
-                    Text ("Description")
-                        .padding(.top,10)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-         
-                    TextEditor(text: $descText)
-                        .padding(.leading)
-                        .frame(maxWidth: .infinity, alignment: .leading)
-                        .padding()
-                        .background(.white)
-                        .cornerRadius(8)
-                        .shadow(color: .black.opacity(0.5),radius: 5)
-                    
-                    
-                }
+                .padding()
                 .dynamicTypeSize(...DynamicTypeSize.accessibility1)
-                .padding(.horizontal, 20)
             }
+            .background(Color(.systemGroupedBackground).ignoresSafeArea())
         }
     }
 }

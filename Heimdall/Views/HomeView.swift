@@ -131,6 +131,7 @@ struct HomeView: View {
                     
                     
                 }
+                .padding(.top)
                 .padding(.horizontal, 20)
                 .frame(maxWidth: .infinity, alignment: .leading)
             }

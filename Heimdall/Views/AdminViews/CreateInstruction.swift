@@ -78,7 +78,7 @@ struct CreateInstruction: View {
                  CustomDayTimeView()
                                
                 }
-                .padding(.horizontal)
+                .padding()
                     
                 
                 
