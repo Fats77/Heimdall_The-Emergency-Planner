@@ -33,34 +33,26 @@
 		EAD6339B2EAAFFAD006C9A22 /* Exceptions for "Heimdall" folder in "HeimdallTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Views/AdminViews/CreateInstruction.swift,
 				Views/AdminViews/CreatePlan.swift,
 				Views/AdminViews/MemberAttendanceView.swift,
 				Views/Components/ChecklistCardView.swift,
-				Views/Components/CustomDayTimeView.swift,
 				Views/CoordinatorViews/AttendanceView.swift,
-				Views/DrillDetailView.swift,
 				Views/HomeView.swift,
 				Views/OnboardingView.swift,
 				Views/PersonalAttendanceView.swift,
-				Views/ProfileView.swift,
 			);
 			target = EAAEA3402EA9D32D00D5E9C2 /* HeimdallTests */;
 		};
 		EAD6339C2EAAFFAD006C9A22 /* Exceptions for "Heimdall" folder in "HeimdallUITests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				Views/AdminViews/CreateInstruction.swift,
 				Views/AdminViews/CreatePlan.swift,
 				Views/AdminViews/MemberAttendanceView.swift,
 				Views/Components/ChecklistCardView.swift,
-				Views/Components/CustomDayTimeView.swift,
 				Views/CoordinatorViews/AttendanceView.swift,
-				Views/DrillDetailView.swift,
 				Views/HomeView.swift,
 				Views/OnboardingView.swift,
 				Views/PersonalAttendanceView.swift,
-				Views/ProfileView.swift,
 			);
 			target = EAAEA34A2EA9D32D00D5E9C2 /* HeimdallUITests */;
 		};
@@ -236,6 +228,8 @@
 			);
 			mainGroup = EAAEA32B2EA9D32B00D5E9C2;
 			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = EAAEA3352EA9D32B00D5E9C2 /* Products */;
 			projectDirPath = "";
