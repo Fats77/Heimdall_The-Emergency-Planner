@@ -71,8 +71,9 @@ struct CreatePlan: View {
                                                    .shadow(color: accentColor.opacity(0.4), radius: 6, x: 0, y: 3)
                                             }
                                         } else {
-                                            Text("icon \(num)")
-                                                .font(.body)
+                                            Image("BuildingPlaceholder-\(index)")
+                                                .resizable()
+                                                .scaledToFit()
                                               
                                         }
                                     }
@@ -138,6 +139,7 @@ struct CreatePlan: View {
                                             .foregroundColor(accentColor)
                                     }
                                     .padding()
+                                
                                     .background(colorScheme == .light ? Color.white : Color(.systemGray6))
                                     .cornerRadius(12)
                                     .shadow(color: Color.black.opacity(0.1), radius: 6, x: 0, y: 3)
@@ -148,7 +150,7 @@ struct CreatePlan: View {
                     .padding(24)
                     .background(colorScheme == .dark ? Color.clear : Color.white)
                     .cornerRadius(20)
-                    .shadow(color: Color.black.opacity(0.1), radius: 10, x: 0, y: 5)
+                    .shadow(color: accentColor.opacity(0.3), radius: 10, x: 0, y: 5)
                 }
                 .padding()
                 .dynamicTypeSize(...DynamicTypeSize.accessibility1)
