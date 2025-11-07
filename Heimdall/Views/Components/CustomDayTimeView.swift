@@ -27,8 +27,7 @@ struct CustomDayTimeView: View {
                         
                     }
                 }
-                
-                .background(.gray.opacity(0.2))
+                .background(PrimaryGradientView())
                 .clipShape(Capsule())
                 .pickerStyle(.menu)
           
@@ -36,7 +35,7 @@ struct CustomDayTimeView: View {
                     view.tint(Color.white)
                 })
                 .if(colorScheme != .dark, transform: { view in
-                    view.tint(Color.black)
+                    view.tint(Color.white)
                 })
                 
             }
@@ -46,15 +45,26 @@ struct CustomDayTimeView: View {
             //.background(Color.gray.opacity(0.4))
             .clipShape(RoundedRectangle(cornerRadius: 10))
             
-            DatePicker(selection: $selectedTime, displayedComponents: .hourAndMinute, label: {
-                /*@START_MENU_TOKEN@*/Text("Date")/*@END_MENU_TOKEN@*/
-            })
+            HStack{
+                Text("Date")
+                 //   .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+                Spacer()
+                ZStack {
+                    DatePicker("", selection: $selectedTime, displayedComponents: .hourAndMinute)
+                        .labelsHidden()
+                        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+                        .colorMultiply(.clear)
+                        .blendMode(.destinationOver)
+                    Text(selectedTime, style: .time)
+                        .foregroundColor(.white)
+                        .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+                }
+                .background(PrimaryGradientView())
+                .clipShape(Capsule())
+                .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+            }
+            .frame(maxWidth: .infinity)
             .dynamicTypeSize(...DynamicTypeSize.accessibility1)
-                .tint(.black)
-                .frame(maxWidth: .infinity)
-                .padding(.leading)
-               // .background(Color.gray.opacity(0.4))
-                .clipShape(RoundedRectangle(cornerRadius: 10))
         }
         .padding()
     }

@@ -19,12 +19,12 @@ struct CreateInstruction: View {
        
         ScrollView{
             
-            VStack (){
+            VStack (spacing: 3){
                 
                 Text("Emergency Type")
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .padding()
-                    .font(.title)
+                    .padding(.leading)
+                    .font(.title2)
                     .bold()
                     
                 
@@ -43,13 +43,12 @@ struct CreateInstruction: View {
                     .tint(.black)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
-                    .background(.white)
+                    .background(Color(.systemGray6))
                     .cornerRadius(8)
-                    .shadow(color: .black.opacity(0.5),radius: 5)
+//                    .shadow(color: .black.opacity(0.5),radius: 5)
                     
                 }
                 .foregroundStyle(Color.black)
-                .padding(.top, 3)
                 .padding()
                 
                     Text ("Schedule")
@@ -70,19 +69,16 @@ struct CreateInstruction: View {
                     .dynamicTypeSize(...DynamicTypeSize.accessibility1)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
-                    .background(.white)
+                    .background(Color(.systemGray6))
+//                    .background(.white)
                     .cornerRadius(8)
-                    .shadow(color: .black.opacity(0.5),radius: 5)
+                 //   .shadow(color: .black.opacity(0.5),radius: 5)
                     
                     .tint(.black)
                  CustomDayTimeView()
                                
                 }
                 .padding()
-                    
-                
-                
-                
             }
             
         }
