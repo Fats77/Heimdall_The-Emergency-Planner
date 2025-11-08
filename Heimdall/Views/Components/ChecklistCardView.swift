@@ -65,7 +65,7 @@ struct ChecklistCardView: View {
                             .fontWeight(.semibold)
                             .padding(.vertical, 5)
                             .padding(.horizontal, 10)
-                            .background(Capsule().fill(.red.opacity(0.1)).stroke(Color.red, lineWidth: 1))
+                            .background(Capsule().fill(Color.primary2.opacity(0.1)).stroke(Color.primary2, lineWidth: 1))
                     }else{
                         Button{
                             
@@ -211,15 +211,19 @@ struct ChecklistCardView: View {
             
             .padding()
             .dynamicTypeSize(...DynamicTypeSize.xLarge)
+        
             .background{
                 Color.white
+                    
             }
+        
             .clipShape(RoundedRectangle(cornerRadius: 10))
+            .shadow(color: Color.tertiary .opacity(0.6), radius: 5, x: 0, y:2)
         
     }
         
 }
 
 #Preview {
-    ChecklistCardView(isSafe: true)
+    ChecklistCardView(isSafe: false)
 }

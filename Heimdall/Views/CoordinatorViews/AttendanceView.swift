@@ -15,12 +15,13 @@ struct AttendanceView: View {
             VStack(alignment: .leading, spacing: 8){
                 Text ("Academy Attendence")
                     .font(.title).bold()
+                    .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
                     .padding()
                 Text ("Unchecked (3)")
                     .font(.headline)
                     .foregroundColor(.primary)
                     .padding(.horizontal,15)
-                    .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+                    .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
                 //                .padding()
                 //                .font(.title3)
                 //                .bold()
@@ -34,7 +35,7 @@ struct AttendanceView: View {
                     .font(.headline)
                     .foregroundColor(.primary)
                     .padding(.horizontal,15)
-                    .dynamicTypeSize(...DynamicTypeSize.accessibility1)
+                    .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
                 //                .padding()
                 //                .font(.title3)
                 //                .bold()
@@ -45,6 +46,7 @@ struct AttendanceView: View {
                 }
                 
             }
+            
             .padding(8)
             .ignoresSafeArea()
             
