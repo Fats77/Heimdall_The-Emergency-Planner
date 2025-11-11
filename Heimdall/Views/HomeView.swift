@@ -13,8 +13,9 @@ struct HomeView: View {
     let columns: [GridItem] = [
         GridItem(.flexible()) , GridItem(.flexible()) ,GridItem(.flexible())
     ]
+    
     let contactColumns: [GridItem] = [
-        GridItem(.adaptive(minimum: 120)),
+        GridItem(.flexible()), GridItem(.flexible())
     ]
     
     var body: some View {
@@ -87,7 +88,7 @@ struct HomeView: View {
                     HStack(spacing: 8) {
                         Image(systemName: "phone")
                             .imageScale(.large)
-                        Text("Personal Emergency Contacts")
+                        Text("Personal Emergency Contact")
                             .font(.title3.bold())
                     }
                     .dynamicTypeSize(...DynamicTypeSize.xLarge)
@@ -97,37 +98,30 @@ struct HomeView: View {
                         ForEach(["fruit", "car", "plane swift"], id: \.self) { item in
                             Text("Contact for \(item)")
                                 .lineLimit(1)
-                                .fixedSize(horizontal: true, vertical: false)
+//                                .fixedSize(horizontal: true, vertical: false)
                                 .padding(.horizontal, 10)
                                 .padding(.vertical, 15)
                                 .frame(maxWidth: .infinity)
                                 .foregroundStyle(Color.primary)
                                 .background(Color(.secondarySystemBackground))
                                 .cornerRadius(12)
-                                .shadow(color: Color.tertiary .opacity(0.4), radius: 5, x: -2, y: 7)
                         }
                         Button {
                             showAddContactSheet = true
                         }
-                       // CustomButtonView(label: "Add New", symbol: "plus")
                         label: {
                             HStack() {
                                 Text("Add New")
-                                  //  .font(.body.bold())
                                 Image(systemName: "plus")
-                                
-                                  //  .font(.title3.bold())
                             }
-                            
-                            .frame(maxWidth: .infinity)
-                            .padding(.vertical, 13)
-//                            .padding(.horizontal,2)
-                            .foregroundColor(.white)
-                            .background(PrimaryGradientView())
-                            .cornerRadius(20)
-                            .shadow(color: Color.tertiary.opacity(0.4), radius: 5, x: 0, y: 3)
                         }
                         .accessibilityLabel(Text("Add New Emergency Contact"))
+                        .padding(.horizontal, 10)
+                        .padding(.vertical, 15)
+                        .frame(maxWidth: .infinity)
+                        .foregroundColor(.white)
+                        .background(PrimaryGradientView())
+                        .cornerRadius(12)
                     }
                 }
                 .padding()
