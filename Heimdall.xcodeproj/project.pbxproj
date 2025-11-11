@@ -6,14 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		047504022EC0E01F00001368 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 047504012EC0E01F00001368 /* FirebaseAuth */; };
-		047504042EC0E01F00001368 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 047504032EC0E01F00001368 /* FirebaseFirestore */; };
-		047504062EC0E01F00001368 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 047504052EC0E01F00001368 /* FirebaseMessaging */; };
-		047504082EC0E01F00001368 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = 047504072EC0E01F00001368 /* FirebaseStorage */; };
-		047504182EC0E63700001368 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = 047504172EC0E63700001368 /* FirebaseFunctions */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXContainerItemProxy section */
 		EAAEA3422EA9D32D00D5E9C2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -41,15 +33,11 @@
 		EAD6339B2EAAFFAD006C9A22 /* Exceptions for "Heimdall" folder in "HeimdallTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				"GoogleService-Info.plist",
-				Views/AdminViews/BuildingDetailView.swift,
-				Views/AdminViews/CreateDrillView.swift,
 				Views/AdminViews/CreatePlan.swift,
 				Views/AdminViews/MemberAttendanceView.swift,
 				Views/Components/ChecklistCardView.swift,
 				Views/CoordinatorViews/AttendanceView.swift,
 				Views/HomeView.swift,
-				Views/JoinOrCreateView.swift,
 				Views/OnboardingView.swift,
 				Views/PersonalAttendanceView.swift,
 			);
@@ -58,15 +46,11 @@
 		EAD6339C2EAAFFAD006C9A22 /* Exceptions for "Heimdall" folder in "HeimdallUITests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
-				"GoogleService-Info.plist",
-				Views/AdminViews/BuildingDetailView.swift,
-				Views/AdminViews/CreateDrillView.swift,
 				Views/AdminViews/CreatePlan.swift,
 				Views/AdminViews/MemberAttendanceView.swift,
 				Views/Components/ChecklistCardView.swift,
 				Views/CoordinatorViews/AttendanceView.swift,
 				Views/HomeView.swift,
-				Views/JoinOrCreateView.swift,
 				Views/OnboardingView.swift,
 				Views/PersonalAttendanceView.swift,
 			);
@@ -101,11 +85,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				047504062EC0E01F00001368 /* FirebaseMessaging in Frameworks */,
-				047504082EC0E01F00001368 /* FirebaseStorage in Frameworks */,
-				047504182EC0E63700001368 /* FirebaseFunctions in Frameworks */,
-				047504022EC0E01F00001368 /* FirebaseAuth in Frameworks */,
-				047504042EC0E01F00001368 /* FirebaseFirestore in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -166,11 +145,6 @@
 			);
 			name = Heimdall;
 			packageProductDependencies = (
-				047504012EC0E01F00001368 /* FirebaseAuth */,
-				047504032EC0E01F00001368 /* FirebaseFirestore */,
-				047504052EC0E01F00001368 /* FirebaseMessaging */,
-				047504072EC0E01F00001368 /* FirebaseStorage */,
-				047504172EC0E63700001368 /* FirebaseFunctions */,
 			);
 			productName = Heimdall;
 			productReference = EAAEA3342EA9D32B00D5E9C2 /* Heimdall.app */;
@@ -255,7 +229,6 @@
 			mainGroup = EAAEA32B2EA9D32B00D5E9C2;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				047504002EC0E01F00001368 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = EAAEA3352EA9D32B00D5E9C2 /* Products */;
@@ -457,10 +430,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Heimdall/Heimdall.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 98Y6GRMSNC;
+				DEVELOPMENT_TEAM = Y22ZRS246K;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -490,10 +462,9 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
-				CODE_SIGN_ENTITLEMENTS = Heimdall/Heimdall.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
-				DEVELOPMENT_TEAM = 98Y6GRMSNC;
+				DEVELOPMENT_TEAM = Y22ZRS246K;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
@@ -642,45 +613,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		047504002EC0E01F00001368 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
-			requirement = {
-				kind = upToNextMajorVersion;
-				minimumVersion = 12.5.0;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		047504012EC0E01F00001368 /* FirebaseAuth */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 047504002EC0E01F00001368 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseAuth;
-		};
-		047504032EC0E01F00001368 /* FirebaseFirestore */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 047504002EC0E01F00001368 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseFirestore;
-		};
-		047504052EC0E01F00001368 /* FirebaseMessaging */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 047504002EC0E01F00001368 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseMessaging;
-		};
-		047504072EC0E01F00001368 /* FirebaseStorage */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 047504002EC0E01F00001368 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseStorage;
-		};
-		047504172EC0E63700001368 /* FirebaseFunctions */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 047504002EC0E01F00001368 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
-			productName = FirebaseFunctions;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = EAAEA32C2EA9D32B00D5E9C2 /* Project object */;
 }
