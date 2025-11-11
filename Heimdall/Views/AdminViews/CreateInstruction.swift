@@ -27,15 +27,12 @@ struct CreateInstruction: View {
                     .font(.title2)
                     .bold()
                     
-                
                 HStack {
                     Picker("Pick Emergency", selection: $emergencyType) {
                         ForEach (emergencyData, id: \.self )
                         {
                             emergency in
                             Text(emergency)
-                            
-                            
                         }
                         
                     }

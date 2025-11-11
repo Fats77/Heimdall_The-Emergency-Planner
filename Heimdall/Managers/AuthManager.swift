@@ -8,6 +8,7 @@
 import Foundation
 import FirebaseAuth
 import AuthenticationServices
+internal import Combine
 
 // This is the "Coordinator" that handles the result of the Apple Sign In
 // We need this to bridge from UIKit's delegate pattern to SwiftUI
@@ -182,16 +183,18 @@ class AuthManager: ObservableObject {
 }
 
 // MARK: - Sign in with Apple Presentation Context
-// This is required by the ASAuthorizationController
 extension SignInWithAppleCoordinator: ASAuthorizationControllerPresentationContextProviding {
     func presentationAnchor(for controller: ASAuthorizationController) -> ASPresentationAnchor {
-        // Return the main window of the app
-        return UIApplication.shared.windows.first!
+        
+        let window = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .first { $0.activationState == .foregroundActive }?
+            .windows
+            .first { $0.isKeyWindow }
+        return window ?? UIApplication.shared.windows.first!
     }
 }
-
 // MARK: - Cryptography Helpers
-// These are required for generating the nonce
 import CryptoKit
 
 private func randomNonceString(length: Int = 32) -> String {

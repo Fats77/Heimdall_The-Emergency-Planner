@@ -89,13 +89,13 @@ struct OnboardingView: View {
                                     currentPage += 1
                                 }
                             }label: {
-                                CustomButtonView(label: "Next", fillWidth: true)
+                                CustomButtonView(label: "Continue", fillWidth: true)
                             }
                         } else {
                             Button{
                                 isOnboarding = false
                             } label: {
-                                CustomButtonView(label: "Start", fillWidth: true)
+                                CustomButtonView(label: "Get Started", fillWidth: true)
                             }
                         }
                     }
@@ -139,7 +139,7 @@ struct OnboardingItemView: View {
                 
                 Text(title)
                     .multilineTextAlignment(.center)
-                    .kerning(4.0)
+                    .kerning(2.0)
                     .font(.title)
                     .fontWeight(.bold)
                 
@@ -159,7 +159,7 @@ struct OnboardingItemView: View {
                     .padding(.top, -100)
                 
                 Text("Heimdall")
-                    .kerning(4.0)
+                    .kerning(2.0)
                     .font(.title)
                     .fontWeight(.bold)
                 

@@ -1,8 +1,16 @@
+//
+//  JoinOrCreateView.swift
+//  Heimdall
+//
+//  Created by Kemas Deanova on 10/11/25.
+//
+
+
 import SwiftUI
 
 struct JoinOrCreateView: View {
     @EnvironmentObject var firestoreManager: FirestoreManager
-    @EnvironmentObject var authManager: AuthManager // To get user info
+    @EnvironmentObject var authManager: AuthManager
     
     @State private var inviteCode: String = ""
     @State private var newBuildingName: String = ""
@@ -101,7 +109,6 @@ struct JoinOrCreateView: View {
                 errorMessage = "Invalid invite code or an error occurred."
                 showError = true
             }
-            // On success, the HomeView will update automatically
         }
     }
     
@@ -122,7 +129,10 @@ struct JoinOrCreateView: View {
                 errorMessage = "Could not create building. Please try again."
                 showError = true
             }
-            // On success, the HomeView will update automatically
         }
     }
+}
+
+#Preview{
+    JoinOrCreateView()
 }

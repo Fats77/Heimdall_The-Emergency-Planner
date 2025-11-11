@@ -1,7 +1,15 @@
+//
+//  FirestoreManager.swift
+//  Heimdall
+//
+//  Created by Kemas Deanova on 09/11/25.
+//
+
+
 import Foundation
 import FirebaseFirestore
-import FirebaseFirestoreSwift
-import FirebaseFunctions // We need this for the Cloud Function
+import FirebaseFunctions
+internal import Combine
 
 @MainActor
 class FirestoreManager: ObservableObject {
@@ -115,7 +123,7 @@ class FirestoreManager: ObservableObject {
     // We call a cloud function to ensure the invite code is unique
     // and to handle the logic securely on the server.
     func createBuilding(name: String, description: String, creator: AppUser) async -> Bool {
-        guard let uid = uid, let email = creator.email else { return false }
+        guard let uid = uid, let email: String? = creator.email else { return false }
         
         isLoading = true
         
@@ -167,6 +175,29 @@ class FirestoreManager: ObservableObject {
         } catch {
             print("Error calling joinBuilding function: \(error.localizedDescription)")
             isLoading = false
+            return false
+        }
+    }
+    
+    // MARK: - Drill Functions
+        
+    func saveDrill(_ drill: Drill, forBuildingId buildingId: String?) async -> Bool {
+        guard let buildingId = buildingId else {
+            print("Error: Building ID is nil")
+            return false
+        }
+        
+        do {
+            // This will create a new document in the "drills" sub-collection
+            // and automatically set its data from our Swift 'Drill' struct.
+            try db.collection("buildings").document(buildingId)
+                  .collection("drills").document()
+                  .setData(from: drill)
+            
+            print("Drill saved successfully!")
+            return true
+        } catch {
+            print("Error saving drill: \(error.localizedDescription)")
             return false
         }
     }

@@ -6,22 +6,27 @@
 //
 
 import SwiftUI
+import FirebaseAuth
 
 struct ContentView: View {
+    
     @AppStorage("isOnboarding") var isOnboarding: Bool = true
+    @EnvironmentObject var authManager: AuthManager
+    
     init() {
-        // Optional: Clear UITableView background if needed for older iOS/specific list styles
         UIDatePicker.appearance().backgroundColor = .clear
         UITableView.appearance().backgroundColor = .clear
         UINavigationBar.appearance().largeTitleTextAttributes = [.foregroundColor: UIColor.secondary2]
     }
+    
     var body: some View {
-        if isOnboarding {
-            OnboardingView()
+        if authManager.userSession == nil && isOnboarding{
+            AuthenticationView()
         } else {
             TabView {
                 Tab ( "Overview", systemImage: "bolt"){
                     HomeView()
+                        .environmentObject(FirestoreManager(uid: authManager.userSession!.uid))
                 }
                 Tab ("Sccan" , systemImage: "qrcode.viewfinder"){
                     ProfileView()
