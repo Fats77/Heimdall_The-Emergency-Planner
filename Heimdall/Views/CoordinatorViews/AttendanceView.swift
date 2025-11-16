@@ -53,7 +53,7 @@ struct AttendanceView: View {
            
         }
        // .padding(6)
-        .background(.gray.opacity(0.1))
+        .background(Color.theme.opacity(0.1))
         //.ignoresSafeArea()
         
        

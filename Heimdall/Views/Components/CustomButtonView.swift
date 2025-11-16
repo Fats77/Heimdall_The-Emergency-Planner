@@ -42,10 +42,10 @@ struct CustomButtonView: View {
                 PrimaryGradientView()
             }
         }
-        .clipShape(Capsule())
+        .clipShape(RoundedRectangle(cornerRadius: 13))
         .overlay{
             if [1, 2].contains(type) {
-                Capsule()
+                RoundedRectangle(cornerRadius: 15)
                     .stroke(
                         LinearGradient(gradient: Gradient(colors: [.secondary2, .theme]), startPoint: .topLeading, endPoint: .bottomTrailing)
                         ,lineWidth: 1

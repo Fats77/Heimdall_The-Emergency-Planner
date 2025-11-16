@@ -17,8 +17,8 @@ struct CustomDayTimeView: View {
         let dynamicHStack = dynamicTypeSize > .large ? AnyLayout(VStackLayout()) : AnyLayout(HStackLayout())
         dynamicHStack{
             HStack{
-                Text("Select Day")
-                    Spacer()
+                Text("Day")
+                   
                 Picker(selection: $selectedDay, label: Text("Day Picker"))
                 {
                     ForEach(1...31, id: \.self) {
@@ -28,7 +28,7 @@ struct CustomDayTimeView: View {
                     }
                 }
                 .background(PrimaryGradientView())
-                .clipShape(Capsule())
+                .clipShape(RoundedRectangle(cornerRadius: 14))
                 .pickerStyle(.menu)
           
                 .if(colorScheme == .dark, transform: { view in
@@ -43,12 +43,16 @@ struct CustomDayTimeView: View {
             
             .frame(maxWidth: .infinity, alignment: .leading)
             //.background(Color.gray.opacity(0.4))
-            .clipShape(RoundedRectangle(cornerRadius: 10))
+            .clipShape(RoundedRectangle(cornerRadius: 14))
             
             HStack{
-                Text("Date")
+                if dynamicTypeSize <= .large{
+                    Spacer()
+                }
+                
+                Text("Time")
                  //   .dynamicTypeSize(...DynamicTypeSize.accessibility1)
-                Spacer()
+               
                 ZStack {
                     DatePicker("", selection: $selectedTime, displayedComponents: .hourAndMinute)
                         .labelsHidden()
@@ -60,10 +64,10 @@ struct CustomDayTimeView: View {
                         .dynamicTypeSize(...DynamicTypeSize.accessibility1)
                 }
                 .background(PrimaryGradientView())
-                .clipShape(Capsule())
+                .clipShape(RoundedRectangle(cornerRadius: 14))
                 .dynamicTypeSize(...DynamicTypeSize.accessibility1)
             }
-            .frame(maxWidth: .infinity)
+            .frame(maxWidth: .infinity, alignment: .leading)
             .dynamicTypeSize(...DynamicTypeSize.accessibility1)
         }
         .padding()

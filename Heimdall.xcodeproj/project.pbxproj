@@ -6,6 +6,16 @@
 	objectVersion = 77;
 	objects = {
 
+/* Begin PBXBuildFile section */
+		EAD635A22EC2CC66006C9A22 /* FirebaseAnalytics in Frameworks */ = {isa = PBXBuildFile; productRef = EAD635A12EC2CC66006C9A22 /* FirebaseAnalytics */; };
+		EAD635A42EC2CC66006C9A22 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = EAD635A32EC2CC66006C9A22 /* FirebaseAuth */; };
+		EAD635A62EC2CC66006C9A22 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = EAD635A52EC2CC66006C9A22 /* FirebaseFirestore */; };
+		EAD635A82EC2CC66006C9A22 /* FirebaseFunctions in Frameworks */ = {isa = PBXBuildFile; productRef = EAD635A72EC2CC66006C9A22 /* FirebaseFunctions */; };
+		EAD635AA2EC2CC66006C9A22 /* FirebaseFunctionsCombine-Community in Frameworks */ = {isa = PBXBuildFile; productRef = EAD635A92EC2CC66006C9A22 /* FirebaseFunctionsCombine-Community */; };
+		EAD635AC2EC2CC66006C9A22 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = EAD635AB2EC2CC66006C9A22 /* FirebaseMessaging */; };
+		EAD635AE2EC2CC66006C9A22 /* FirebaseStorage in Frameworks */ = {isa = PBXBuildFile; productRef = EAD635AD2EC2CC66006C9A22 /* FirebaseStorage */; };
+/* End PBXBuildFile section */
+
 /* Begin PBXContainerItemProxy section */
 		EAAEA3422EA9D32D00D5E9C2 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -35,11 +45,12 @@
 			membershipExceptions = (
 				Views/AdminViews/CreatePlan.swift,
 				Views/AdminViews/MemberAttendanceView.swift,
+				Views/AdminViews/MemberDetailView.swift,
 				Views/Components/ChecklistCardView.swift,
+				Views/Components/EmergencyContactListView.swift,
 				Views/CoordinatorViews/AttendanceView.swift,
 				Views/HomeView.swift,
 				Views/OnboardingView.swift,
-				Views/PersonalAttendanceView.swift,
 			);
 			target = EAAEA3402EA9D32D00D5E9C2 /* HeimdallTests */;
 		};
@@ -48,11 +59,12 @@
 			membershipExceptions = (
 				Views/AdminViews/CreatePlan.swift,
 				Views/AdminViews/MemberAttendanceView.swift,
+				Views/AdminViews/MemberDetailView.swift,
 				Views/Components/ChecklistCardView.swift,
+				Views/Components/EmergencyContactListView.swift,
 				Views/CoordinatorViews/AttendanceView.swift,
 				Views/HomeView.swift,
 				Views/OnboardingView.swift,
-				Views/PersonalAttendanceView.swift,
 			);
 			target = EAAEA34A2EA9D32D00D5E9C2 /* HeimdallUITests */;
 		};
@@ -85,6 +97,13 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EAD635AC2EC2CC66006C9A22 /* FirebaseMessaging in Frameworks */,
+				EAD635A22EC2CC66006C9A22 /* FirebaseAnalytics in Frameworks */,
+				EAD635A42EC2CC66006C9A22 /* FirebaseAuth in Frameworks */,
+				EAD635A62EC2CC66006C9A22 /* FirebaseFirestore in Frameworks */,
+				EAD635AE2EC2CC66006C9A22 /* FirebaseStorage in Frameworks */,
+				EAD635AA2EC2CC66006C9A22 /* FirebaseFunctionsCombine-Community in Frameworks */,
+				EAD635A82EC2CC66006C9A22 /* FirebaseFunctions in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -145,6 +164,13 @@
 			);
 			name = Heimdall;
 			packageProductDependencies = (
+				EAD635A12EC2CC66006C9A22 /* FirebaseAnalytics */,
+				EAD635A32EC2CC66006C9A22 /* FirebaseAuth */,
+				EAD635A52EC2CC66006C9A22 /* FirebaseFirestore */,
+				EAD635A72EC2CC66006C9A22 /* FirebaseFunctions */,
+				EAD635A92EC2CC66006C9A22 /* FirebaseFunctionsCombine-Community */,
+				EAD635AB2EC2CC66006C9A22 /* FirebaseMessaging */,
+				EAD635AD2EC2CC66006C9A22 /* FirebaseStorage */,
 			);
 			productName = Heimdall;
 			productReference = EAAEA3342EA9D32B00D5E9C2 /* Heimdall.app */;
@@ -229,6 +255,7 @@
 			mainGroup = EAAEA32B2EA9D32B00D5E9C2;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
+				EAD635A02EC2CC66006C9A22 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = EAAEA3352EA9D32B00D5E9C2 /* Products */;
@@ -430,6 +457,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Heimdall/Heimdall.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = Y22ZRS246K;
@@ -445,7 +473,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.fats.Heimdall;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.fats.Heimdall-EmergencyPlanner";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -462,6 +490,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = Heimdall/Heimdall.entitlements;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = Y22ZRS246K;
@@ -477,7 +506,7 @@
 					"@executable_path/Frameworks",
 				);
 				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.fats.Heimdall;
+				PRODUCT_BUNDLE_IDENTIFIER = "com.fats.Heimdall-EmergencyPlanner";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -613,6 +642,55 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		EAD635A02EC2CC66006C9A22 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 12.5.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		EAD635A12EC2CC66006C9A22 /* FirebaseAnalytics */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EAD635A02EC2CC66006C9A22 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAnalytics;
+		};
+		EAD635A32EC2CC66006C9A22 /* FirebaseAuth */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EAD635A02EC2CC66006C9A22 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseAuth;
+		};
+		EAD635A52EC2CC66006C9A22 /* FirebaseFirestore */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EAD635A02EC2CC66006C9A22 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFirestore;
+		};
+		EAD635A72EC2CC66006C9A22 /* FirebaseFunctions */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EAD635A02EC2CC66006C9A22 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseFunctions;
+		};
+		EAD635A92EC2CC66006C9A22 /* FirebaseFunctionsCombine-Community */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EAD635A02EC2CC66006C9A22 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = "FirebaseFunctionsCombine-Community";
+		};
+		EAD635AB2EC2CC66006C9A22 /* FirebaseMessaging */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EAD635A02EC2CC66006C9A22 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseMessaging;
+		};
+		EAD635AD2EC2CC66006C9A22 /* FirebaseStorage */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = EAD635A02EC2CC66006C9A22 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;
+			productName = FirebaseStorage;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = EAAEA32C2EA9D32B00D5E9C2 /* Project object */;
 }

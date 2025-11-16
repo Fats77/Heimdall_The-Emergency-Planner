@@ -14,7 +14,8 @@ struct CreatePlan: View {
     
     @Environment(\.colorScheme) var colorScheme
     
-    @State private var descText: String = ""
+    @State private var name: String = ""
+    @State private var desc: String = ""
     
     var nums = ["a", "b", "55"]
     
@@ -34,7 +35,7 @@ struct CreatePlan: View {
                                 .foregroundColor(.primary)
                             Text("Set up your next mission with clarity and precision.")
                                 .font(.headline)
-                                .foregroundColor(.tertiary).opacity(0.6)
+                                .foregroundColor(.gray)
                         }.padding()
                         .frame(maxWidth: .infinity, alignment: .leading)
                        // .shadow(color: accentColor.opacity(0.4), radius: 6, x: 0, y: 3)
@@ -103,9 +104,9 @@ struct CreatePlan: View {
                             VStack(alignment: .leading, spacing: 16) {
                                 Text("Name")
                                     .font(.headline)
-                                    .foregroundColor(.tertiary)
+                                   // .foregroundColor(.tertiary)
                                 
-                                TextField("Enter name here", text: $descText)
+                                TextField("Enter name here", text: $name)
                                     .padding(12)
                                     //.foregroundColor(.tertiary).opacity(0.6)
                                     .background(Color(.systemGray6))
@@ -117,9 +118,9 @@ struct CreatePlan: View {
                             VStack(alignment: .leading, spacing: 16) {
                                 Text("Description")
                                     .font(.headline)
-                                   .foregroundColor(.tertiary)
+                               //    .foregroundColor(.tertiary)
                                 
-                                TextEditor(text: $descText)
+                                TextEditor(text: $desc)
                                     .scrollContentBackground(.hidden)
                                     .padding(8)
                                     .background(Color(.systemGray6))
@@ -133,7 +134,7 @@ struct CreatePlan: View {
                                 Text("Drill")
                                     //.padding()
                                     .font(.headline)
-                                    .foregroundColor(.tertiary)
+                              //      .foregroundColor(.tertiary)
                                 
                                 Button(action: {
                                     // Upload map action
@@ -144,7 +145,7 @@ struct CreatePlan: View {
                                             .foregroundColor(.gray)
                                         Spacer()
                                         Image(systemName: "square.and.arrow.down")
-                                            .font(.title2)
+                                            .font(.title2).bold()
                                             .foregroundColor(Color.tertiary)
                                     }
                                     .padding()
@@ -154,6 +155,9 @@ struct CreatePlan: View {
                                     .shadow(color: Color.black.opacity(0.1), radius: 6, x: 0, y: 3)
                                 }
                             }
+                            InstructionInputView()
+                            
+                            
                         }
                     }
                     .padding(24)
@@ -164,7 +168,7 @@ struct CreatePlan: View {
                 .padding()
                 .dynamicTypeSize(...DynamicTypeSize.accessibility1)
             }
-            .background(Color(.systemGroupedBackground).ignoresSafeArea())
+            .background(Color(.theme.opacity(0.1)).ignoresSafeArea())
         }
     }
 }

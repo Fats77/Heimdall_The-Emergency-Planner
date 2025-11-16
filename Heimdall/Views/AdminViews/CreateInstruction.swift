@@ -41,7 +41,7 @@ struct CreateInstruction: View {
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .padding()
                     .background(Color(.systemGray6))
-                    .cornerRadius(8)
+                    .cornerRadius(12)
 //                    .shadow(color: .black.opacity(0.5),radius: 5)
                     
                 }
@@ -68,14 +68,22 @@ struct CreateInstruction: View {
                     .padding()
                     .background(Color(.systemGray6))
 //                    .background(.white)
-                    .cornerRadius(8)
+                    .cornerRadius(12)
                  //   .shadow(color: .black.opacity(0.5),radius: 5)
                     
                     .tint(.black)
-                 CustomDayTimeView()
                                
                 }
                 .padding()
+                
+                VStack{
+                    Text ("Select")
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .padding(.leading)
+                        .font(.title2).bold()
+                    
+                    CustomDayTimeView()
+                }
             }
             
         }

@@ -39,7 +39,7 @@ struct ChecklistCardView: View {
                         
                         Text("Member")
                             .opacity(0.7)
-                            .foregroundStyle(Color.tertiary)
+                            .foregroundStyle(Color.secondary)
                     }
                     
                     Spacer()
@@ -59,7 +59,7 @@ struct ChecklistCardView: View {
                             .background(Capsule().fill(.green.opacity(0.2)).stroke(Color.safe, lineWidth: 1))
                     }
                     else if isSafe == false {
-                        Text ("SOS")
+                        Text ("Missing")
                             .font(.caption2)
                             .foregroundStyle(Color.red)
                             .fontWeight(.semibold)
@@ -96,43 +96,7 @@ struct ChecklistCardView: View {
                                 Divider()
                                 
                                 ForEach(contacts.sorted(by: { $0.key < $1.key }), id: \.key) { contact, number in
-                                    HStack {
-                                        VStack(alignment: .leading) {
-                                            Text(contact)
-                                                .font(.headline)
-                                                
-                                            Text(number)
-                                                .font(.subheadline)
-                                              //  .foregroundColor(.gray)
-                                                .foregroundStyle(Color.tertiary)
-                                                .opacity(0.7)
-                                        }
-                                        Spacer()
-                                        Button {
-                                            UIPasteboard.general.string = number
-                                            withAnimation(.easeInOut) {
-                                                showCopyToast = true
-                                            }
-                                        } label: {
-                                            Image(systemName: "doc.on.doc")
-                                                .foregroundColor(Color.tertiary)
-                                        }
-                                        .buttonStyle(PlainButtonStyle())
-                                        .accessibilityLabel("Copy phone number for \(contact)")
-                                        .accessibilityHint("Copies the phone number \(number) to clipboard")
-                                        
-                                        Button {
-                                            selectedContact = contact
-                                            showCallAlert = true
-                                        } label: {
-                                            Image(systemName: "phone.fill")
-                                                .foregroundColor(Color.tertiary)
-                                        }
-                                        .buttonStyle(PlainButtonStyle())
-                                        .accessibilityLabel("Call \(contact)")
-                                        .accessibilityHint("Initiates a call to \(contact)")
-                                    }
-                                    .padding(.horizontal)
+                                    EmergencyContactListView(showCopyToast: $showCopyToast, showCallAlert: $showCallAlert, contact: contact, number: number)
                                 }
                                 
                                 Spacer()
@@ -144,7 +108,8 @@ struct ChecklistCardView: View {
                                             .font(.subheadline.bold())
                                             .padding(.vertical, 10)
                                             .padding(.horizontal, 16)
-                                            .background(PrimaryGradientView())
+                                            .font(.footnote.bold())
+                                            .background(Color.black.opacity(0.8))
                                             .foregroundColor(.white)
                                             .cornerRadius(12)
                                             .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -218,7 +183,7 @@ struct ChecklistCardView: View {
             }
         
             .clipShape(RoundedRectangle(cornerRadius: 10))
-            .shadow(color: Color.tertiary .opacity(0.6), radius: 5, x: 0, y:2)
+            //.shadow(color: Color.tertiary .opacity(0.6), radius: 5, x: 0, y:2)
         
     }
         
