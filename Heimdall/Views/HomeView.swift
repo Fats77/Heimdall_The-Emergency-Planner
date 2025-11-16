@@ -15,164 +15,33 @@ struct HomeView: View {
     @EnvironmentObject var authManager: AuthManager
     
     @State private var showAddContactSheet = false
-    @State private var newContactName: String = ""
-    @State private var newContactPhone: String = ""
-    
-    let columns: [GridItem] = [
-        GridItem(.flexible()) , GridItem(.flexible()) ,GridItem(.flexible())
-    ]
-    
-    let contactColumns: [GridItem] = [
-        GridItem(.flexible()), GridItem(.flexible())
-    ]
-    
+    @State private var showContactAddedToast = false
+
     var body: some View {
         NavigationStack {
             ScrollView {
-                //MARK: Header Overview
-                HStack{
-                    Text("Hello, \(authManager.currentUser?.displayName ?? "User")")
-                        .font(.largeTitle.bold())
-                        .foregroundColor(Color.primary)
-                    Spacer()
-                    Image(systemName: "person.crop.circle")
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 40, height: 40)
-                        .clipShape(Circle())
-                        .shadow(color: Color.tertiary .opacity(0.4), radius: 5, x: -2, y: 7)
-                }
-                .padding(.horizontal)
-                .padding(.vertical,5)
-                
-                //MARK: Drill Plans Header
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack {
-                        // --- 5. FIX: Renamed section for clarity ---
-                        Text("Your Buildings")
-                            .font(.title3.bold())
-                            .foregroundColor(Color.primary)
-                        Spacer()
-                        
-                        // --- 6. FIX: This "Add New" link goes to Join/Create ---
-                        NavigationLink(destination: JoinOrCreateView()) {
-                            // --- REPLACED CustomButtonView with standard Label ---
-                            Label("Add New", systemImage: "plus")
-                                .font(.headline)
-                                .padding(.horizontal, 16)
-                                .padding(.vertical, 8)
-                                .foregroundColor(.white)
-                                .background(Color.accentColor)
-                                .clipShape(Capsule())
-                        }
-                    }
-                    .dynamicTypeSize(...DynamicTypeSize.xxLarge)
-                    
-                    //MARK: Drill Cards
-                    // --- 7. FIX: Loop over real buildings ---
-                    LazyVGrid(columns: columns, spacing: 16) {
-                        ForEach(firestoreManager.userBuildings) { building in
-                            // --- 8. FIX: The link to detail goes on the card ---
-                            NavigationLink(destination: BuildingDetailView(building: building).environmentObject(firestoreManager)) {
-                                Text(building.name) // Use the building's name
-                                    .lineLimit(2)
-                                    .padding()
-                                    .frame(width: 100, height: 150)
-                                    .background(
-                                        LinearGradient(gradient: Gradient(colors: [Color(.systemBackground).opacity(0.8), Color(.systemBackground)]), startPoint: .topLeading, endPoint: .bottomTrailing)
-                                    )
-                                    .foregroundStyle(Color.primary)
-                                    .cornerRadius(12)
-                                    .shadow(color: Color.tertiary .opacity(0.4), radius: 5, x: -2, y: 7)
-                            }
-                        }
-                    }
-                    .dynamicTypeSize(...DynamicTypeSize.xxLarge)
-                }
-                .padding()
-                .background(Color(.systemBackground))
-                .cornerRadius(16)
-                .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 3)
-                .padding(.horizontal)
-                .padding(.vertical, 8)
-                .dynamicTypeSize(...DynamicTypeSize.xxLarge)
-                
-                //MARK: Emergency Contacts
-                VStack(alignment: .leading, spacing: 12) {
-                    HStack(spacing: 8) {
-                        Image(systemName: "phone")
-                            .imageScale(.large)
-                        Text("Personal Emergency Contact")
-                            .font(.title3.bold())
-                    }
-                    .dynamicTypeSize(...DynamicTypeSize.xLarge)
-                    
-                    //MARK: Emergency Contact List
-                    LazyVGrid(columns: contactColumns, alignment: .leading, spacing: 10) {
-                        // --- 9. FIX: Loop over real contacts ---
-                        ForEach(authManager.currentUser?.emergencyContacts ?? [], id: \.phone) { contact in
-                            Text(contact.name)
-                                .lineLimit(1)
-                                .padding(.horizontal, 10)
-                                .padding(.vertical, 15)
-                                .frame(maxWidth: .infinity)
-                                .foregroundStyle(Color.primary)
-                                .background(Color(.secondarySystemBackground))
-                                .cornerRadius(12)
-                        }
-                        
-                        Button {
-                            showAddContactSheet = true
-                        }
-                        label: {
-                            HStack() {
-                                Text("Add New")
-                                Image(systemName: "plus")
-                            }
-                        }
-                        .accessibilityLabel(Text("Add New Emergency Contact"))
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 15)
-                        .frame(maxWidth: .infinity)
-                        .foregroundColor(.white)
-                        // --- REPLACED PrimaryGradientView with standard color ---
-                        .background(Color.accentColor)
-                        .cornerRadius(12)
-                    }
-                }
-                .padding()
-                .background(Color(.systemBackground))
-                .cornerRadius(16)
-                .padding(.horizontal)
-                .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-                
-                //MARK: History Section Header
-                VStack(alignment: .leading, spacing: 12) {
-                    // ... (History section remains as placeholder)
-                    HStack(spacing: 10) {
-                        Image(systemName: "clock")
-                            .imageScale(.large)
-                        Text("History")
-                            .font(.title3.bold())
-                    }
-                    .padding(.leading, 4)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                    
-                    //MARK: History List
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Alert history will appear here.")
-                            .padding()
-                        // ForEach(1...6, id: \.self) { index in ... }
-                    }
-                }
-                .padding()
-                .background(Color(.systemBackground))
-                .cornerRadius(16)
-                .padding(.horizontal)
-                .padding(.vertical, 8)
-                .dynamicTypeSize(...DynamicTypeSize.xxLarge)
+                HeaderView()
+                DrillPlansSection()
+                EmergencyContactsSection(showAddContactSheet: $showAddContactSheet)
+                HistorySection()
             }
-            .background(Color(.systemGroupedBackground))
+            .background(Color.tertiary.opacity(0.4))
+            .overlay(
+                Group {
+                    if showContactAddedToast {
+                        Text("Contact added")
+                            .font(.footnote.bold())
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 16)
+                            .background(Color.black.opacity(0.8))
+                            .foregroundColor(.white)
+                            .cornerRadius(12)
+                            .transition(.move(edge: .bottom).combined(with: .opacity))
+                            .padding(.bottom, 20)
+                    }
+                },
+                alignment: .bottom
+            )
             .dynamicTypeSize(...DynamicTypeSize.xxLarge)
             
             // --- 10. FIX: Use .navigationDestination, not .navigationBarBackButtonHidden ---
@@ -180,37 +49,237 @@ struct HomeView: View {
             // .navigationBarBackButtonHidden(true)
         }
         .sheet(isPresented: $showAddContactSheet) {
-            VStack(spacing: 20) {
-                Text("Add Emergency Contact")
-                    .font(.title2.bold())
-                    .padding(.top)
-                
-                // --- 11. FIX: Connect TextFields to @State ---
-                TextField("Name", text: $newContactName)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                
-                TextField("Phone Number", text: $newContactPhone)
-                    .textFieldStyle(RoundedBorderTextFieldStyle())
-                    .keyboardType(.phonePad)
-                
-                Button("Save Contact") {
-                    // --- 12. FIX: Call save function ---
-                    saveContact()
+            AddContactSheet(
+                showAddContactSheet: $showAddContactSheet,
+                showContactAddedToast: $showContactAddedToast
+            )
+        }
+    }
+}
+
+struct HeaderView: View {
+    var body: some View {
+        HStack{
+            Text("Hello, Imma")
+                .font(.largeTitle.bold())
+                .foregroundColor(Color.primary)
+            Spacer()
+            Image(systemName: "person.crop.circle")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 40, height: 40)
+                .clipShape(Circle())
+                .shadow(color: Color.tertiary .opacity(0.4), radius: 5, x: -2, y: 7)
+        }
+        .padding(.horizontal)
+        .padding(.vertical,5)
+    }
+}
+//MARK: Drill Plan Section
+struct DrillPlansSection: View {
+    let columns: [GridItem] = [
+        GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())
+    ]
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Existing Drill Plans")
+                    .font(.title3.bold())
+                    .foregroundColor(Color.primary)
+                Spacer()
+                CustomButtonView(label: "Add New", symbol: "plus", type: 1)
+            }
+            .dynamicTypeSize(...DynamicTypeSize.xxLarge)
+            LazyVGrid(columns: columns, spacing: 16) {
+                ForEach(1...6, id: \.self) { item in
+                    DrillCardView(name: "\(item)")
                 }
-                .font(.headline)
-                .foregroundColor(.white)
-                .padding()
-                .frame(maxWidth: .infinity)
-                // --- REPLACED PrimaryGradientView with standard color ---
-                .background(Color.accentColor)
-                .cornerRadius(12)
-                
+            }
+            .dynamicTypeSize(...DynamicTypeSize.xxLarge)
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 3)
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .dynamicTypeSize(...DynamicTypeSize.xxLarge)
+    }
+}
+//MARK: Emergency Contact Section
+struct EmergencyContactsSection: View {
+    @Binding var showAddContactSheet: Bool
+    let contactColumns: [GridItem] = [
+        GridItem(.flexible()), GridItem(.flexible())
+    ]
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 8) {
+                Image(systemName: "phone")
+                    .imageScale(.large)
+                Text("Personal Emergency Contact")
+                    .font(.title3.bold())
+            }
+            .dynamicTypeSize(...DynamicTypeSize.xLarge)
+            LazyVGrid(columns: contactColumns, alignment: .leading, spacing: 10) {
+                ForEach(["fruit", "car", "fuitr"], id: \.self) { item in
+                    ContactCardView(name: item)
+                }
+                Button {
+                    showAddContactSheet = true
+                } label: {
+                    HStack(spacing: 6) {
+                        Image(systemName: "plus")
+                            .font(.title3)
+                            .foregroundStyle(Color.white)
+                            .padding(13)
+                            .background(PrimaryGradientView())
+                            .cornerRadius(12)
+                    }
+                    .shadow(color: Color.tertiary .opacity(0.4), radius: 5, x: -2, y: 7)
+                }
+                .accessibilityLabel(Text("Add New Emergency Contact"))
+            }
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .padding(.horizontal)
+        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
+    }
+}
+//MARK: History Section
+struct HistorySection: View {
+    var body: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack(spacing: 10) {
+                Image(systemName: "clock")
+                    .imageScale(.large)
+                Text("History")
+                    .font(.title3.bold())
+            }
+            .padding(.leading, 4)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .leading, spacing: 12) {
+                ForEach(1...6, id: \.self) { index in
+                    Text("A List Item")
+                        .frame(maxWidth: .infinity , alignment: .leading)
+                        .padding(.horizontal, 16)
+                        .padding(.top, 10)
+                        .foregroundStyle(Color.primary)
+                      .background(Color(.systemBackground))
+                       // .background(Color.theme.opacity(0.2))
+                        .cornerRadius(12)
+                        .contextMenu {
+                            Button("Delete") {}
+                        }
+                    Divider()
+                }
+            }
+        }
+        .padding()
+      .background(Color(.systemBackground))
+      //  .background(Color.theme.opacity(0.2))
+        .cornerRadius(16)
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .dynamicTypeSize(...DynamicTypeSize.xxLarge)
+    }
+}
+//MARK: Add Contact Sheet Section
+struct AddContactSheet: View {
+    @Binding var showAddContactSheet: Bool
+    @Binding var showContactAddedToast: Bool
+    @State private var name: String = ""
+    @State private var phone: String = ""
+    var body: some View {
+        ScrollView {
+            VStack(spacing: 20) {
+                RoundedRectangle(cornerRadius: 2)
+                    .frame(width: 40, height: 5)
+                    .foregroundColor(.gray.opacity(0.4))
+                    .padding(.top, 8)
+                Text("New Contact Details")
+                    .font(.title2.bold())
+                    .padding(.top, 8)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                VStack(spacing: 16) {
+                    VStack(alignment: .leading, spacing: 12) {
+                        Text("Name")
+                            .font(.headline)
+                        TextField("Enter contact name", text: $name)
+                            .padding()
+                            .background(Color(.systemBackground))
+                            .cornerRadius(10)
+                            .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+                        Text("Phone Number")
+                            .font(.headline)
+                        TextField("Enter phone number", text: $phone)
+                            .padding()
+                            .background(Color(.systemBackground))
+                            .cornerRadius(10)
+                            .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
+                            .keyboardType(.phonePad)
+                    }
+                    .padding()
+                    .cornerRadius(16)
+                }
+                Button {
+                    withAnimation(.easeInOut) {
+                        showContactAddedToast = true
+                    }
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                        withAnimation(.easeInOut) {
+                            showContactAddedToast = false
+                            showAddContactSheet = false
+                        }
+                    }
+                } label: {
+                    HStack {
+                        Text("Save Contact")
+                            .fontWeight(.semibold)
+                        Image(systemName: "checkmark.circle.fill")
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 14)
+                    .foregroundColor(.white)
+                    .background(
+                        PrimaryGradientView()
+                    )
+                    .cornerRadius(14)
+                    .shadow(color: Color.tertiary .opacity(0.4), radius: 5, x: -2, y: 7)
+                }
+                .padding(.horizontal)
                 Spacer()
             }
-            .padding()
-            .presentationDetents([.medium])
-            .presentationDragIndicator(.visible)
+            .dynamicTypeSize(...DynamicTypeSize.accessibility2)
         }
+      //  .background(Color(.systemGroupedBackground))
+        .background(Color.theme.opacity(0.1))
+        .overlay(
+            Group {
+                if showContactAddedToast {
+                    Text("Contact added")
+                        .font(.subheadline.bold())
+                        .padding(.vertical, 9)
+                        .padding(.horizontal, 16)
+                        .background(Color.black.opacity(0.5))
+                        .foregroundColor(.white)
+                        .cornerRadius(12)
+                        .transition(.move(edge: .bottom).combined(with: .opacity))
+                        .onAppear {
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
+                                withAnimation(.easeInOut) {
+                                    showContactAddedToast = false
+                                }
+                            }
+                        }
+                        .padding(.top, 10)
+                }
+            },
+            alignment: .bottom
+        )
+        .presentationDetents([.medium])
     }
     
     // --- 13. ADD: Function to save the contact ---

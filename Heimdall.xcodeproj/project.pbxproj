@@ -51,7 +51,6 @@
 				Views/HomeView.swift,
 				Views/JoinOrCreateView.swift,
 				Views/OnboardingView.swift,
-				Views/PersonalAttendanceView.swift,
 			);
 			target = EAAEA3402EA9D32D00D5E9C2 /* HeimdallTests */;
 		};
@@ -68,7 +67,6 @@
 				Views/HomeView.swift,
 				Views/JoinOrCreateView.swift,
 				Views/OnboardingView.swift,
-				Views/PersonalAttendanceView.swift,
 			);
 			target = EAAEA34A2EA9D32D00D5E9C2 /* HeimdallUITests */;
 		};
