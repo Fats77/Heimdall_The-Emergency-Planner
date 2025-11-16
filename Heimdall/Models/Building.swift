@@ -21,12 +21,14 @@ struct Building: Codable, Identifiable {
 }
 
 struct BuildingMember: Codable, Identifiable {
-    @DocumentID var id: String?
+    @DocumentID var id: String? // This will be the user's UID
     let displayName: String
     let email: String
     var role: Role
+    let uid: String
     
-    enum Role: String, Codable {
+    // --- ADD CaseIterable ---
+    enum Role: String, Codable, CaseIterable {
         case admin
         case coordinator
         case member

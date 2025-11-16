@@ -41,7 +41,7 @@ exports.createBuilding = functions.https.onCall(async (data, context) => {
   if (!context.auth) {
     throw new functions.https.HttpsError(
       "unauthenticated",
-      "You must be logged in to create a building.",
+      "You must be logged in to create a building." + context.auth,
     );
   }
 
@@ -69,11 +69,14 @@ exports.createBuilding = functions.https.onCall(async (data, context) => {
     });
 
     const memberRef = buildingRef.collection("members").doc(uid);
+    // ...
     await memberRef.set({
-      displayName: adminInfo.displayName,
-      email: adminInfo.email,
-      role: "admin",
+        uid: uid, // <-- ADD THIS LINE
+        displayName: adminInfo.displayName,
+        email: adminInfo.email,
+        role: "admin",
     });
+// ...  
 
     return { success: true, buildingId: buildingRef.id, inviteCode: inviteCode };
   } catch (error) {
@@ -128,11 +131,14 @@ exports.joinBuilding = functions.https.onCall(async (data, context) => {
                         .collection("members")
                         .doc(uid);
     
+    // ...
     await memberRef.set({
-      displayName: userData.displayName,
-      email: userData.email,
-      role: "member", // Default role
+        uid: uid, // <-- ADD THIS LINE
+        displayName: userData.displayName,
+        email: userData.email,
+        role: "member", // Default role
     });
+    // ...
 
     return { success: true, buildingId: buildingId };
   } catch (error) {

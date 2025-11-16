@@ -20,23 +20,27 @@ struct ContentView: View {
     }
     
     var body: some View {
-        if authManager.userSession == nil && isOnboarding{
+        
+        if authManager.userSession == nil || !authManager.isUserDataReady{
             AuthenticationView()
         } else {
             TabView {
-                Tab ( "Overview", systemImage: "bolt"){
-                    HomeView()
-                        .environmentObject(FirestoreManager(uid: authManager.userSession!.uid))
-                }
-                Tab ("Sccan" , systemImage: "qrcode.viewfinder"){
-                    ProfileView()
-                }
+                HomeView()
+                    .environmentObject(authManager.firestoreManager)
+                    .tabItem {
+                        Label("Overview", systemImage: "bolt")
+                    }
+                
+                ProfileView()
+                    .tabItem {
+                        Label("Scan", systemImage: "qrcode.viewfinder")
+                    }
             }
         }
     }
-    
 }
 
 #Preview {
     ContentView()
+        .environmentObject(AuthManager())
 }

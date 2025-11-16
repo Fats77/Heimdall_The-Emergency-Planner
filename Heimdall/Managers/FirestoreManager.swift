@@ -3,42 +3,30 @@
 //  Heimdall
 //
 //  Created by Kemas Deanova on 09/11/25.
+//  FIXED by Gemini on 11/11/25
 //
-
 
 import Foundation
 import FirebaseFirestore
 import FirebaseFunctions
-internal import Combine
+internal import Combine // <-- 1. Fixed syntax error
+import FirebaseAuth // <-- 2. ADDED THIS: Needed for the fix
 
 @MainActor
 class FirestoreManager: ObservableObject {
     
-    // Published properties will update our UI automatically
     @Published var userBuildings: [Building] = []
     @Published var isLoading = false
     
     private var db = Firestore.firestore()
     private var functions = Functions.functions()
-    private var uid: String?
-
-    // We initialize this with the user's ID from AuthManager
-    init(uid: String?) {
-        self.uid = uid
-        
-        if uid != nil {
-            fetchUserBuildings()
-        }
+    private var uid: String? {
+        Auth.auth().currentUser?.uid
     }
     
-    // Helper to update the UID if AuthManager initializes it later
-    func setUID(uid: String?) {
-        self.uid = uid
-        if uid == nil {
-            userBuildings = [] // Clear data on log out
-        }
-    }
-
+    init() { }
+    
+    
     // MARK: - User Functions
     
     func fetchUser() async -> AppUser? {
@@ -63,53 +51,81 @@ class FirestoreManager: ObservableObject {
         }
     }
     
-    // MARK: - Building Functions
-    
-    func fetchUserBuildings() {
-        guard let uid = uid else { return }
-        
-        isLoading = true
-        
-        // This query finds all buildings where the user is a member
-        db.collectionGroup("members").whereField(FieldPath.documentID(), isEqualTo: uid)
-            .getDocuments { [weak self] (querySnapshot, error) in
-                guard let self = self else { return }
-                
-                if let error = error {
-                    print("Error fetching user buildings: \(error.localizedDescription)")
-                    self.isLoading = false
-                    return
-                }
-                
-                guard let memberDocs = querySnapshot?.documents else {
-                    self.isLoading = false
-                    return
-                }
-                
-                // Now that we have the "member" docs, we need to get their
-                // parent "building" documents
-                let buildingRefs = memberDocs.map { $0.reference.parent.parent! }
-                
-                if buildingRefs.isEmpty {
-                    self.isLoading = false
-                    self.userBuildings = []
-                    return
-                }
-                
-                // Fetch all building documents
-                Task {
-                    var buildings: [Building] = []
-                    for ref in buildingRefs {
-                        if let building = await self.fetchBuilding(by: ref.documentID) {
-                            buildings.append(building)
-                        }
-                    }
-                    self.userBuildings = buildings
-                    self.isLoading = false
-                }
-            }
+    func addEmergencyContact(_ contact: EmergencyContact, for uid: String) async -> Bool {
+        do {
+            // This uses FieldValue.arrayUnion to safely add a new contact
+            let contactData = ["name": contact.name, "phone": contact.phone]
+            
+            try await db.collection("users").document(uid).updateData([
+                "emergencyContacts": FieldValue.arrayUnion([contactData])
+            ])
+            return true
+        } catch {
+            print("Error adding emergency contact: \(error.localizedDescription)")
+            return false
+        }
     }
     
+    // MARK: - Building Functions
+        
+    func fetchUserBuildings() async {
+        guard let uid = uid else { return }
+        
+        await MainActor.run {
+            self.isLoading = true
+        }
+        
+        do {
+            // 1. Get the "member" documents
+            let memberSnapshot = try await db.collectionGroup("members")
+                                             .whereField("uid", isEqualTo: uid)
+                                             .getDocuments()
+            
+            let memberDocs = memberSnapshot.documents
+            
+            // 2. Get the parent "building" references
+            let buildingRefs = memberDocs.compactMap { $0.reference.parent.parent }
+            
+            if buildingRefs.isEmpty {
+                // No buildings found
+                await MainActor.run {
+                    self.userBuildings = []
+                    self.isLoading = false
+                }
+                return
+            }
+            
+            // 3. Fetch all building documents concurrently
+            var fetchedBuildings: [Building] = []
+            try await withThrowingTaskGroup(of: Building?.self) { group in
+                for ref in buildingRefs {
+                    group.addTask {
+                        return await self.fetchBuilding(by: ref.documentID)
+                    }
+                }
+                
+                for try await building in group {
+                    if let building = building {
+                        fetchedBuildings.append(building)
+                    }
+                }
+            }
+            
+            // 4. Update the UI
+            await MainActor.run {
+                self.userBuildings = fetchedBuildings
+                self.isLoading = false
+            }
+            
+        } catch {
+            print("Error fetching user buildings: \(error.localizedDescription)")
+            await MainActor.run {
+                self.isLoading = false
+            }
+        }
+    }
+        
+    // --- HELPER FUNCTION ---
     private func fetchBuilding(by id: String) async -> Building? {
         do {
             return try await db.collection("buildings").document(id).getDocument(as: Building.self)
@@ -119,11 +135,8 @@ class FirestoreManager: ObservableObject {
         }
     }
     
-    // --- THIS IS THE CLOUD FUNCTION PART ---
-    // We call a cloud function to ensure the invite code is unique
-    // and to handle the logic securely on the server.
     func createBuilding(name: String, description: String, creator: AppUser) async -> Bool {
-        guard let uid = uid, let email: String? = creator.email else { return false }
+        guard let uid = uid else { return false }
         
         isLoading = true
         
@@ -134,7 +147,7 @@ class FirestoreManager: ObservableObject {
                 "admin": [
                     "uid": uid,
                     "displayName": creator.displayName,
-                    "email": email
+                    "email": creator.email // Pass the email from the creator object
                 ]
             ]
             
@@ -143,7 +156,7 @@ class FirestoreManager: ObservableObject {
             print("Cloud function result: \(result.data)")
             
             // Refresh our building list
-            fetchUserBuildings()
+            await fetchUserBuildings()
             return true
             
         } catch {
@@ -162,10 +175,9 @@ class FirestoreManager: ObservableObject {
             // Call the Cloud Function
             let result = try await functions.httpsCallable("joinBuilding").call(["inviteCode": inviteCode])
             
-            // The function will return data, e.g., { "success": true } or { "error": "Invalid code" }
             if let data = result.data as? [String: Any], data["success"] as? Bool == true {
                 // Refresh our building list
-                fetchUserBuildings()
+                await fetchUserBuildings()
                 return true
             } else {
                 print("Error joining building: \( (result.data as? [String: Any])?["error"] ?? "Unknown error" )")
@@ -188,8 +200,6 @@ class FirestoreManager: ObservableObject {
         }
         
         do {
-            // This will create a new document in the "drills" sub-collection
-            // and automatically set its data from our Swift 'Drill' struct.
             try db.collection("buildings").document(buildingId)
                   .collection("drills").document()
                   .setData(from: drill)
@@ -198,6 +208,38 @@ class FirestoreManager: ObservableObject {
             return true
         } catch {
             print("Error saving drill: \(error.localizedDescription)")
+            return false
+        }
+    }
+    
+    // MARK: - Member Functions
+        
+    // Fetches all members for a specific building
+    func fetchMembers(forBuildingId buildingId: String) async -> [BuildingMember] {
+        do {
+            let snapshot = try await db.collection("buildings").document(buildingId)
+                                     .collection("members").getDocuments()
+            
+            let members = snapshot.documents.compactMap { doc in
+                try? doc.data(as: BuildingMember.self)
+            }
+            return members
+            
+        } catch {
+            print("Error fetching members: \(error.localizedDescription)")
+            return []
+        }
+    }
+        
+    // Updates the role for a specific user in a specific building
+    func updateMemberRole(userId: String, buildingId: String, newRole: BuildingMember.Role) async -> Bool {
+        do {
+            try await db.collection("buildings").document(buildingId)
+                      .collection("members").document(userId)
+                      .updateData(["role": newRole.rawValue])
+            return true
+        } catch {
+            print("Error updating role: \(error.localizedDescription)")
             return false
         }
     }
