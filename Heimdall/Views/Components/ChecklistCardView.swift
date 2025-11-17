@@ -6,189 +6,62 @@
 //
 
 import SwiftUI
-private let accentColor = Color(red: 0.23, green: 0.59, blue: 0.59)
+import Kingfisher // For loading profile images
 
 struct ChecklistCardView: View {
-    var isSafe : Bool? = true
-    @State private var showEmergencySheet = false
-    @State private var selectedContact: String? = nil
-    @State private var showCallAlert = false
-    @State private var showCopyToast = false
     
-    let contacts = [
-        "Father": "+1 234 567 8901",
-        "Mom": "+1 987 654 3210",
-        "Jinny": "+1 555 123 4567"
-    ]
-
+    let attendee: Attendee
+    var onManualCheckIn: (() -> Void)? = nil
+    
     var body: some View {
-            HStack(alignment: .top){
-                Image(.profilePlaceholder)
-                    .resizable()
-                    .clipShape(RoundedRectangle(cornerRadius:3))
-                    .frame(width: 80, height: 80)
-                    .padding(.trailing)
-                //  .shadow(color: Color.tertiary .opacity(0.2), radius: 5, x: -2, y: 7)
+        HStack(alignment: .top) {
+            // TODO: Load real profile image
+            Image(systemName: "person.fill")
+                .resizable()
+                .scaledToFit()
+                .frame(width: 40, height: 40)
+                .padding(10)
+                .background(Color(.systemGray6))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .frame(width: 60, height: 60)
+            
+            VStack(alignment: .leading, spacing: 4) {
+                Text(attendee.name)
+                    .font(.title3)
+                    .bold()
                 
-                HStack {
-                    VStack(alignment: .leading){
-                        
-                        Text("Imma ")
-                            .font(.title3)
-                            .bold()
-                        
-                        Text("Member")
-                            .opacity(0.7)
-                            .foregroundStyle(Color.secondary)
-                    }
-                    
-                    Spacer()
-                    
-                    
-                    if isSafe == true
-                    {
-                        HStack{
-                            
-                        }
-                        Text ("SAFE")
-                            .foregroundStyle(Color.safe)
-                            .font(.caption2)
-                            .fontWeight(.semibold)
-                            .padding(.vertical, 5)
-                            .padding(.horizontal, 10)
-                            .background(Capsule().fill(.green.opacity(0.2)).stroke(Color.safe, lineWidth: 1))
-                    }
-                    else if isSafe == false {
-                        Text ("Missing")
-                            .font(.caption2)
-                            .foregroundStyle(Color.red)
-                            .fontWeight(.semibold)
-                            .padding(.vertical, 5)
-                            .padding(.horizontal, 10)
-                            .background(Capsule().fill(Color.primary2.opacity(0.1)).stroke(Color.primary2, lineWidth: 1))
-                    }else{
-                        Button{
-                            
-                        }
-                    label:
-                        {
-                            CustomButtonView(label: "Check", symbol: "person.fill.checkmark", type: 1)
-                            
-                        }
-                    }
-                    
-                    if isSafe != nil
-                    {
-                        Button {
-                            showEmergencySheet = true
-                        } label: {
-                            Image(systemName: "ellipsis")
-                                .rotationEffect(.degrees(90))
-                                .foregroundStyle(Color.tertiary)
-                                .bold()
-                        }
-                        .sheet(isPresented: $showEmergencySheet) {
-                            VStack(spacing: 20) {
-                                Text("Emergency Contacts")
-                                    .font(.headline)
-                                    .padding(.top)
-                                
-                                Divider()
-                                
-                                ForEach(contacts.sorted(by: { $0.key < $1.key }), id: \.key) { contact, number in
-                                    EmergencyContactListView(showCopyToast: $showCopyToast, showCallAlert: $showCallAlert, contact: contact, number: number)
-                                }
-                                
-                                Spacer()
-                            }
-                            .overlay(
-                                Group {
-                                    if showCopyToast {
-                                        Text("Number copied to clipboard")
-                                            .font(.subheadline.bold())
-                                            .padding(.vertical, 10)
-                                            .padding(.horizontal, 16)
-                                            .font(.footnote.bold())
-                                            .background(Color.black.opacity(0.8))
-                                            .foregroundColor(.white)
-                                            .cornerRadius(12)
-                                            .transition(.move(edge: .bottom).combined(with: .opacity))
-                                            .onAppear {
-                                                DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                                                    withAnimation(.easeInOut) {
-                                                        showCopyToast = false
-                                                    }
-                                                }
-                                            }
-                                            .padding(.bottom, 20)
-                                            .allowsHitTesting(false)
-                                    }
-                                }, alignment: .bottom
-                            )
-                            .presentationDetents([.medium])
-                            .background(Color(UIColor.systemBackground))
-                            .overlay(
-                                Group {
-                                    if showCallAlert {
-                                        Color.black.opacity(0.4)
-                                            .ignoresSafeArea()
-                                            .onTapGesture { showCallAlert = false }
-                                            .transition(.opacity)
-                                        VStack(alignment: .leading,spacing: 16,) {
-                                            Text("Would you like to call this contact?")
-                                                .font(.headline)
-                                                .foregroundColor(.primary)
-                                            Text(selectedContact ?? "")
-                                            
-                                                .foregroundColor(Color.tertiary)
-                                                .opacity(0.7)
-                                            HStack(spacing: 12) {
-                                                Spacer()
-                                                CustomButtonView(label: "Cancel", symbol: "xmark", type: 2)
-                                                
-                                                    .onTapGesture {
-                                                        // Future call integration
-                                                        showCallAlert = false
-                                                    }
-                                                CustomButtonView(label: "Call", symbol: "phone.fill", type: 1)
-                                                    .onTapGesture { showCallAlert = false
-                                                    }
-                                            }
-                                        }
-                                        .padding()
-                                        .background(RoundedRectangle(cornerRadius: 12).fill(Color(UIColor.systemBackground)))
-                                        .shadow(radius: 10)
-                                        .padding(40)
-                                        .transition(.opacity)
-                                    }
-                                }
-                                .animation(.easeInOut, value: showCallAlert)
-                            )
-                        }
-                    }
-                    
-                }
-                .padding(.top, 7)
-                
-                
-                // .padding()
+                Text(attendee.phone ?? "No phone number")
+                    .font(.subheadline)
+                    .foregroundStyle(Color.secondary)
             }
             
-            .padding()
-            .dynamicTypeSize(...DynamicTypeSize.xLarge)
-        
-            .background{
-                Color.white
-                    
+            Spacer()
+            
+            // --- Status Logic ---
+            if attendee.status == .safe {
+                Text("SAFE")
+                    .foregroundStyle(Color.green)
+                    .font(.caption2)
+                    .fontWeight(.semibold)
+                    .padding(.vertical, 5)
+                    .padding(.horizontal, 10)
+                    .background(Capsule().fill(.green.opacity(0.2)).stroke(Color.green, lineWidth: 1))
+            } else {
+                // Feature 9: Manual Check-in Button
+                Button {
+                    onManualCheckIn?()
+                } label: {
+                    Text("Check In")
+                        .font(.caption.bold())
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(.accentColor)
             }
-        
-            .clipShape(RoundedRectangle(cornerRadius: 10))
-            //.shadow(color: Color.tertiary .opacity(0.6), radius: 5, x: 0, y:2)
-        
+        }
+        .padding(.vertical, 8)
     }
-        
 }
 
 #Preview {
-    ChecklistCardView(isSafe: false)
+//    ChecklistCardView(isSafe: false)
 }

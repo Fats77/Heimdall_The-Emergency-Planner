@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0402CBB02ECA7B7600B7F67F /* Kingfisher in Frameworks */ = {isa = PBXBuildFile; productRef = 0402CBAF2ECA7B7600B7F67F /* Kingfisher */; };
 		047504022EC0E01F00001368 /* FirebaseAuth in Frameworks */ = {isa = PBXBuildFile; productRef = 047504012EC0E01F00001368 /* FirebaseAuth */; };
 		047504042EC0E01F00001368 /* FirebaseFirestore in Frameworks */ = {isa = PBXBuildFile; productRef = 047504032EC0E01F00001368 /* FirebaseFirestore */; };
 		047504062EC0E01F00001368 /* FirebaseMessaging in Frameworks */ = {isa = PBXBuildFile; productRef = 047504052EC0E01F00001368 /* FirebaseMessaging */; };
@@ -38,19 +39,35 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		0424C58A2ECA773E0019E49E /* Exceptions for "Heimdall" folder in "Heimdall" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = EAAEA3332EA9D32B00D5E9C2 /* Heimdall */;
+		};
 		EAD6339B2EAAFFAD006C9A22 /* Exceptions for "Heimdall" folder in "HeimdallTests" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				"GoogleService-Info.plist",
+				Views/ActiveEmergencyView.swift,
 				Views/AdminViews/BuildingDetailView.swift,
-				Views/AdminViews/CreateDrillView.swift,
+				Views/AdminViews/CreateBuildingView.swift,
+				Views/AdminViews/CreateEmergencyTypeView.swift,
+				Views/AdminViews/CreateFloorView.swift,
+				Views/AdminViews/CreateInstructionStepView.swift,
 				Views/AdminViews/CreatePlan.swift,
+				Views/AdminViews/FloorDetailView.swift,
+				Views/AdminViews/InstructionsListView.swift,
 				Views/AdminViews/MemberAttendanceView.swift,
+				Views/AdminViews/TriggerAlertView.swift,
 				Views/Components/ChecklistCardView.swift,
 				Views/CoordinatorViews/AttendanceView.swift,
+				Views/EmergencyInProgressView.swift,
 				Views/HomeView.swift,
 				Views/JoinOrCreateView.swift,
 				Views/OnboardingView.swift,
+				Views/YouAreSafeView.swift,
 			);
 			target = EAAEA3402EA9D32D00D5E9C2 /* HeimdallTests */;
 		};
@@ -58,15 +75,24 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				"GoogleService-Info.plist",
+				Views/ActiveEmergencyView.swift,
 				Views/AdminViews/BuildingDetailView.swift,
-				Views/AdminViews/CreateDrillView.swift,
+				Views/AdminViews/CreateBuildingView.swift,
+				Views/AdminViews/CreateEmergencyTypeView.swift,
+				Views/AdminViews/CreateFloorView.swift,
+				Views/AdminViews/CreateInstructionStepView.swift,
 				Views/AdminViews/CreatePlan.swift,
+				Views/AdminViews/FloorDetailView.swift,
+				Views/AdminViews/InstructionsListView.swift,
 				Views/AdminViews/MemberAttendanceView.swift,
+				Views/AdminViews/TriggerAlertView.swift,
 				Views/Components/ChecklistCardView.swift,
 				Views/CoordinatorViews/AttendanceView.swift,
+				Views/EmergencyInProgressView.swift,
 				Views/HomeView.swift,
 				Views/JoinOrCreateView.swift,
 				Views/OnboardingView.swift,
+				Views/YouAreSafeView.swift,
 			);
 			target = EAAEA34A2EA9D32D00D5E9C2 /* HeimdallUITests */;
 		};
@@ -76,6 +102,7 @@
 		EAAEA3362EA9D32B00D5E9C2 /* Heimdall */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			exceptions = (
+				0424C58A2ECA773E0019E49E /* Exceptions for "Heimdall" folder in "Heimdall" target */,
 				EAD6339B2EAAFFAD006C9A22 /* Exceptions for "Heimdall" folder in "HeimdallTests" target */,
 				EAD6339C2EAAFFAD006C9A22 /* Exceptions for "Heimdall" folder in "HeimdallUITests" target */,
 			);
@@ -99,6 +126,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				0402CBB02ECA7B7600B7F67F /* Kingfisher in Frameworks */,
 				047504062EC0E01F00001368 /* FirebaseMessaging in Frameworks */,
 				047504082EC0E01F00001368 /* FirebaseStorage in Frameworks */,
 				047504182EC0E63700001368 /* FirebaseFunctions in Frameworks */,
@@ -169,6 +197,7 @@
 				047504052EC0E01F00001368 /* FirebaseMessaging */,
 				047504072EC0E01F00001368 /* FirebaseStorage */,
 				047504172EC0E63700001368 /* FirebaseFunctions */,
+				0402CBAF2ECA7B7600B7F67F /* Kingfisher */,
 			);
 			productName = Heimdall;
 			productReference = EAAEA3342EA9D32B00D5E9C2 /* Heimdall.app */;
@@ -254,6 +283,7 @@
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
 				047504002EC0E01F00001368 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */,
+				0402CBAE2ECA7B7600B7F67F /* XCRemoteSwiftPackageReference "Kingfisher" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = EAAEA3352EA9D32B00D5E9C2 /* Products */;
@@ -461,6 +491,11 @@
 				DEVELOPMENT_TEAM = 98Y6GRMSNC;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Heimdall/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "";
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "We need your location information for assembly point automatic detection";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location information for assembly point automatic detection";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -494,6 +529,11 @@
 				DEVELOPMENT_TEAM = 98Y6GRMSNC;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Heimdall/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = "";
+				INFOPLIST_KEY_LSApplicationCategoryType = "";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "We need your location information for assembly point automatic detection";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location information for assembly point automatic detection";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
@@ -642,6 +682,14 @@
 /* End XCConfigurationList section */
 
 /* Begin XCRemoteSwiftPackageReference section */
+		0402CBAE2ECA7B7600B7F67F /* XCRemoteSwiftPackageReference "Kingfisher" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/onevcat/Kingfisher.git";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 8.6.1;
+			};
+		};
 		047504002EC0E01F00001368 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */ = {
 			isa = XCRemoteSwiftPackageReference;
 			repositoryURL = "https://github.com/firebase/firebase-ios-sdk";
@@ -653,6 +701,11 @@
 /* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
+		0402CBAF2ECA7B7600B7F67F /* Kingfisher */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0402CBAE2ECA7B7600B7F67F /* XCRemoteSwiftPackageReference "Kingfisher" */;
+			productName = Kingfisher;
+		};
 		047504012EC0E01F00001368 /* FirebaseAuth */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 047504002EC0E01F00001368 /* XCRemoteSwiftPackageReference "firebase-ios-sdk" */;

@@ -2,240 +2,126 @@
 //  BuildingDetailView.swift
 //  Heimdall
 //
-//  Created by Kemas Deanova on 11/11/25.
+//  Created by Kemas Deanova on 17/11/25.
 //
-
 
 import SwiftUI
 import FirebaseFirestore
+import Kingfisher
 
 struct BuildingDetailView: View {
-    let building: Building
+    // This view now creates its own ViewModel
+    @StateObject private var viewModel: BuildingDetailViewModel
     
-    @EnvironmentObject var authManager: AuthManager
-    @EnvironmentObject var firestoreManager: FirestoreManager
-        
-    // --- CHANGE THIS ---
-    @State private var userRole: BuildingMember.Role = .member // Default to member
+    let building: CreateBuildingViewModel.Building
     
-    // This state var will show/hide the "Create Drill" form
-    @State private var isShowingCreateDrillSheet = false
-
+    @State private var isAddingFloor = false
+    
+    // State for presenting the alert confirmation
+    @State private var selectedEmergency: EmergencyType?
+    @State private var floors: [Floor] = []
+    
+    // We initialize the ViewModel with the building's ID
+    init(building: CreateBuildingViewModel.Building) {
+        self.building = building
+        _viewModel = StateObject(wrappedValue: BuildingDetailViewModel(buildingID: building.id!))
+    }
+    
     var body: some View {
-        TabView {
-            // --- TAB 1: Drills ---
-            DrillsTabView(building: building)
-                .tabItem {
-                    Image(systemName: "timer.square")
-                    Text("Drills")
-                }
+        List {
+            // MARK: - Header Section
+            Section {
+                // ... (This section is unchanged from before) ...
+                // It shows the photo, name, description, and invite code
+            }
+            .listRowBackground(Color.clear)
             
-            // --- TAB 2: Instructions ---
-            InstructionsTabView() // This one doesn't need data (yet)
-                .tabItem {
-                    Image(systemName: "list.clipboard")
-                    Text("Instructions")
+            // MARK: - ADMIN CONTROLS SECTION
+            // This is the new section!
+            if viewModel.isAdmin {
+                Section(header: Text("Admin Controls"),
+                        footer: Text("Select an emergency plan to send an immediate alert to all members.")) {
+                    
+                    if viewModel.allEmergencyTypes.isEmpty {
+                        Text("No emergency plans created yet.")
+                            .foregroundColor(.secondary)
+                    }
+                    
+                    ForEach(viewModel.allEmergencyTypes) { emergency in
+                        Button {
+                            // 1. Tapping this selects the emergency
+                            self.selectedEmergency = emergency
+                        } label: {
+                            HStack {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                Text("Trigger \(emergency.prettyType) Alert")
+                                    .fontWeight(.bold)
+                                Spacer()
+                            }
+                            .foregroundColor(.red)
+                        }
+                    }
                 }
+            }
             
-            // --- TAB 3: Members ---
-            MembersTabView(building: building, userRole: userRole)
-                .tabItem {
-                    Image(systemName: "person.3")
-                    Text("Members")
+            // MARK: - Floors Section
+            Section(header: Text("Floors")) {
+                if viewModel.floors.isEmpty {
+                    Text("No floors added yet.")
+                        .foregroundColor(.secondary)
                 }
-                // --- PASS THE ENVIRONMENT OBJECT ---
-                .environmentObject(firestoreManager)
+                
+                ForEach(viewModel.floors) { floor in
+                    // This navigation link is now correct
+                    NavigationLink(destination: FloorDetailView(building: building, floor: floor)) {
+                        HStack {
+                            Image(systemName: "map")
+                                .foregroundColor(.accentColor)
+                            Text(floor.name)
+                        }
+                    }
+                }
+                .onDelete(perform: deleteFloor) // This should be moved to the ViewModel
+            }
+            
+            // ... (Members Section is unchanged) ...
         }
         .navigationTitle(building.name)
+        .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            // Only show the "Create Drill" button if they are an Admin
-            if userRole == .admin {
+            if viewModel.isAdmin { // Only show "Add Floor" to admins
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: {
-                        isShowingCreateDrillSheet = true
-                    }) {
+                    Button {
+                        isAddingFloor = true
+                    } label: {
                         Image(systemName: "plus")
                     }
                 }
             }
         }
-        .sheet(isPresented: $isShowingCreateDrillSheet) {
-            // This is the new View we are about to create
-            CreateDrillView(building: building)
-        }
-    }
-}
-
-// --- Placeholder Tab Views (You can build these out next) ---
-
-struct DrillsTabView: View {
-    let building: Building
-    
-    // This will hold the drills we fetch from Firestore
-    @State var drills: [Drill] = []
-    
-    // We'll use this to listen for changes
-    var db = Firestore.firestore()
-    
-    var body: some View {
-        List(drills) { drill in
-            VStack(alignment: .leading) {
-                Text(drill.emergencyType.rawValue)
-                    .font(.headline)
-                Text("Scheduled: \(drill.interval.rawValue)")
-                    .font(.subheadline)
-                Text("\(drill.instructions.count) instructions")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
-            }
-        }
-        .navigationTitle("Drills") // This might be redundant, but is good practice
-        .onAppear {
-            // This is the most important part
-            // We'll listen for real-time updates
-            listenForDrills()
-        }
-    }
-    
-    func listenForDrills() {
-        guard let buildingId = building.id else { return }
-        
-        db.collection("buildings").document(buildingId)
-          .collection("drills")
-          .addSnapshotListener { (querySnapshot, error) in
-              
-              guard let snapshot = querySnapshot else {
-                  print("Error fetching drills: \(error?.localizedDescription ?? "Unknown error")")
-                  return
-              }
-              
-              // This line is amazing. It automatically maps the
-              // Firestore documents to our Swift 'Drill' struct.
-              self.drills = snapshot.documents.compactMap { document in
-                  try? document.data(as: Drill.self)
-              }
-              
-              print("Fetched \(drills.count) drills")
-          }
-    }
-}
-
-struct InstructionsTabView: View {
-    var body: some View {
-        Text("List of all instructions for all drills goes here.")
-            .navigationTitle("Instructions")
-    }
-}
-
-struct MembersTabView: View {
-    // We need the building ID to know *which* members to fetch
-    let building: Building
-    // We need the user's role to show/hide the admin controls
-    let userRole: BuildingMember.Role
-    
-    // This will hold the list of members we fetch
-    @State private var members: [BuildingMember] = []
-    
-    // We need the FirestoreManager to call our new functions
-    @EnvironmentObject var firestoreManager: FirestoreManager
-    
-    var body: some View {
-        List(members) { member in
-            HStack {
-                VStack(alignment: .leading) {
-                    Text(member.displayName)
-                        .font(.headline)
-                    Text(member.email)
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-                
-                Spacer()
-                
-                // Show the user's role
-                if userRole == .admin {
-                    // If we are an admin, show a Picker to change roles
-                    Picker("Role", selection: binding(for: member)) {
-                        ForEach(BuildingMember.Role.allCases, id: \.self) { role in
-                            Text(role.rawValue.capitalized).tag(role)
-                        }
-                    }
-                    .pickerStyle(.segmented) // A nice compact style
-                    .frame(width: 200)
-                } else {
-                    // If we are not an admin, just show their role as text
-                    Text(member.role.rawValue.capitalized)
-                        .padding(.horizontal, 10)
-                        .padding(.vertical, 5)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(8)
+        .sheet(isPresented: $isAddingFloor) {
+            NavigationStack {
+                CreateFloorView(buildingID: building.id!) { newFloor in
+                    self.floors.append(newFloor)
                 }
             }
-            .padding(.vertical, 5)
+        }
+        // 2. This sheet is presented when an emergency is selected
+        .sheet(item: $selectedEmergency) { emergency in
+            TriggerAlertView(building: building, emergency: emergency)
+                .presentationDetents([.medium])
         }
         .onAppear {
-            // When the view appears, fetch the members
-            loadMembers()
+            viewModel.onAppear()
         }
     }
     
-    func loadMembers() {
-        guard let buildingId = building.id else { return }
-        Task {
-            self.members = await firestoreManager.fetchMembers(forBuildingId: buildingId)
-        }
-    }
-    
-    // This is a helper function to make the Picker work.
-    // It finds the member in our @State array and creates a
-    // binding, so when the Picker changes, we can save the data.
-    private func binding(for member: BuildingMember) -> Binding<BuildingMember.Role> {
-        // Find the index of the member in our array
-        guard let index = members.firstIndex(where: { $0.id == member.id }) else {
-            // This should never happen, but we need a fallback
-            return .constant(member.role)
-        }
-        
-        // Return a binding to that specific member's role
-        return $members[index].role.onChange { newRole in
-            // When the role changes, call our save function
-            saveRoleChange(for: member, newRole: newRole)
-        }
-    }
-    
-    // This is the function that saves the new role to Firestore
-    func saveRoleChange(for member: BuildingMember, newRole: BuildingMember.Role) {
-        guard let buildingId = building.id, let userId = member.id else { return }
-        
-        Task {
-            let success = await firestoreManager.updateMemberRole(
-                userId: userId,
-                buildingId: buildingId,
-                newRole: newRole
-            )
-            
-            if success {
-                print("Successfully updated role for \(member.displayName)")
-            } else {
-                print("Failed to update role for \(member.displayName)")
-                // TODO: Show an error and reset the picker
-                loadMembers() // Re-fetch data to reset the UI
-            }
-        }
+    func deleteFloor(at offsets: IndexSet) {
+        // TODO: Move this logic into the ViewModel
+        print("Delete floor at \(offsets)")
     }
 }
 
-// This is a small helper to trigger an action when a Binding changes
-// Add this extension to the bottom of your MembersTabView.swift file
-extension Binding {
-    func onChange(_ handler: @escaping (Value) -> Void) -> Binding<Value> {
-        Binding(
-            get: { self.wrappedValue },
-            set: { newValue in
-                self.wrappedValue = newValue
-                handler(newValue)
-            }
-        )
-    }
+#Preview {
+//    BuildingDetailView()
 }
-

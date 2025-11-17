@@ -8,19 +8,31 @@
 import SwiftUI
 
 struct DrillCardView: View {
-    var name: String
+    let building: CreateBuildingViewModel.Building
+    
     var body: some View {
-        Text(name)
-            .frame(width: 100, height: 150)
-            .background(
-                LinearGradient(gradient: Gradient(colors: [Color(.systemBackground).opacity(0.8), Color(.systemBackground)]), startPoint: .topLeading, endPoint: .bottomTrailing)
-            )
-            .foregroundStyle(Color.primary)
-            .cornerRadius(12)
-            .shadow(color: Color.tertiary .opacity(0.4), radius: 5, x: -2, y: 7)
+        VStack {
+            // TODO: Load building.buildingPhotoURL
+            Color.gray.opacity(0.3)
+                .frame(height: 80)
+                .cornerRadius(12)
+            
+            Text(building.name)
+                .font(.headline)
+                .foregroundColor(.primary)
+                .lineLimit(1)
+            
+            Text(building.description ?? "")
+                .font(.caption)
+                .foregroundColor(.secondary)
+                .lineLimit(1)
+        }
+        .padding(10)
+        .background(Color(.systemGray6))
+        .cornerRadius(16)
     }
 }
 
 #Preview {
-    DrillCardView(name: "Building 1")
+//    DrillCardView(name: "Building 1")
 }

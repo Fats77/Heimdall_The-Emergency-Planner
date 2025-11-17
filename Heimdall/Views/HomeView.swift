@@ -8,94 +8,183 @@
 
 import SwiftUI
 import FirebaseAuth
+import FirebaseCore
 
 struct HomeView: View {
-    @Environment(\.dynamicTypeSize) var dynamicTypeSize
-    @EnvironmentObject var firestoreManager: FirestoreManager
-    @EnvironmentObject var authManager: AuthManager
     
-    @State private var showAddContactSheet = false
-    @State private var showContactAddedToast = false
+    // Use the ViewModel to manage all data for this screen
+    @StateObject private var viewModel = HomeViewModel()
+    
+    // Get the global AuthManager (as you named it)
+    @EnvironmentObject var authManager: AuthService // Using our AuthService
+    
+    // States for presenting sheets and alerts
+    @State private var isCreatingPlan = false
+    @State private var isJoiningPlan = false
+    @State private var isShowingProfile = false
+    
+    // State for the "Join" alert
+    @State private var inviteCode = ""
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                HeaderView()
-                DrillPlansSection()
-                EmergencyContactsSection(showAddContactSheet: $showAddContactSheet)
-                HistorySection()
+                // Pass user data and profile binding to the header
+                HeaderView(
+                    name: authManager.currentUser?.displayName ?? "User",
+                    photoURL: authManager.currentUser?.photoURL,
+                    isShowingProfile: $isShowingProfile
+                )
+                
+                // Pass the building data and bindings to the plans section
+                MyPlansSection(
+                    joinedBuildings: viewModel.joinedBuildings,
+                    isCreatingPlan: $isCreatingPlan,
+                    isJoiningPlan: $isJoiningPlan
+                )
+                
+                // Pass the completed events to the history section
+                HistorySection(events: viewModel.completedEvents)
             }
             .background(Color.tertiary.opacity(0.4))
-            .overlay(
-                Group {
-                    if showContactAddedToast {
-                        Text("Contact added")
-                            .font(.footnote.bold())
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 16)
-                            .background(Color.black.opacity(0.8))
-                            .foregroundColor(.white)
-                            .cornerRadius(12)
-                            .transition(.move(edge: .bottom).combined(with: .opacity))
-                            .padding(.bottom, 20)
-                    }
-                },
-                alignment: .bottom
-            )
             .dynamicTypeSize(...DynamicTypeSize.xxLarge)
-            
-            // --- 10. FIX: Use .navigationDestination, not .navigationBarBackButtonHidden ---
-            // This view is now the root, so it shouldn't hide the back button
-            // .navigationBarBackButtonHidden(true)
+            .navigationTitle("Home") // Add a title for the navigation stack
+            .navigationBarHidden(true) // Hide the default bar
         }
-        .sheet(isPresented: $showAddContactSheet) {
-            AddContactSheet(
-                showAddContactSheet: $showAddContactSheet,
-                showContactAddedToast: $showContactAddedToast
-            )
+        .refreshable(action: {
+            viewModel.fetchJoinedBuildings()
+            viewModel.fetchCompletedEvents()
+        })
+        // Sheet for Creating a new plan
+        .sheet(isPresented: $isCreatingPlan) {
+            NavigationStack { CreateBuildingView() }
+        }
+        // Sheet for viewing the Profile
+        .sheet(isPresented: $isShowingProfile) {
+            NavigationStack {
+                // We will build this view next
+                ProfileView()
+                    .environmentObject(authManager)
+            }
+        }
+        // Alert for Joining a plan
+        .alert("Join a Plan", isPresented: $isJoiningPlan, actions: {
+            TextField("Enter Invite Code", text: $inviteCode)
+                .autocapitalization(.allCharacters)
+            
+            Button("Join", action: {
+                Task {
+                   await viewModel.joinBuilding(with: inviteCode)
+                   inviteCode = "" // Clear the field
+                }
+            })
+            Button("Cancel", role: .cancel, action: { inviteCode = "" })
+        }, message: {
+            Text("Please enter the 6-character invite code provided by your admin.")
+        })
+        // Alert for any errors
+        .alert("Error", isPresented: $viewModel.showError, presenting: viewModel.errorMessage, actions: { _ in
+            Button("OK") {}
+        }, message: { message in
+            Text(message)
+        })
+        .onAppear {
+            // Fetch all data when the view appears
+            viewModel.fetchJoinedBuildings()
+            viewModel.fetchCompletedEvents()
+            NotificationService.shared.requestNotificationPermission()
         }
     }
 }
 
 struct HeaderView: View {
+    let name: String
+    let photoURL: URL?
+    @Binding var isShowingProfile: Bool
+    
     var body: some View {
-        HStack{
-            Text("Hello, Imma")
+        HStack {
+            Text("Hello, \(name)")
                 .font(.largeTitle.bold())
                 .foregroundColor(Color.primary)
+            
             Spacer()
-            Image(systemName: "person.crop.circle")
-                .resizable()
-                .scaledToFit()
-                .frame(width: 40, height: 40)
-                .clipShape(Circle())
-                .shadow(color: Color.tertiary .opacity(0.4), radius: 5, x: -2, y: 7)
+            
+            Button {
+                isShowingProfile = true
+            } label: {
+                // TODO: Load image from photoURL
+                Image(systemName: "person.crop.circle")
+                    .resizable()
+                    .scaledToFit()
+                    .frame(width: 40, height: 40)
+                    .clipShape(Circle())
+                    .shadow(color: Color.tertiary.opacity(0.4), radius: 5, x: -2, y: 7)
+            }
         }
         .padding(.horizontal)
-        .padding(.vertical,5)
+        .padding(.vertical, 5)
     }
 }
+
 //MARK: Drill Plan Section
-struct DrillPlansSection: View {
+struct MyPlansSection: View {
+    let joinedBuildings: [CreateBuildingViewModel.Building]
+    @Binding var isCreatingPlan: Bool
+    @Binding var isJoiningPlan: Bool
+    
     let columns: [GridItem] = [
-        GridItem(.flexible()), GridItem(.flexible()), GridItem(.flexible())
+        GridItem(.flexible()), GridItem(.flexible())
     ]
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
-                Text("Existing Drill Plans")
+                Text("My Plans")
                     .font(.title3.bold())
                     .foregroundColor(Color.primary)
+                
                 Spacer()
-                CustomButtonView(label: "Add New", symbol: "plus", type: 1)
-            }
-            .dynamicTypeSize(...DynamicTypeSize.xxLarge)
-            LazyVGrid(columns: columns, spacing: 16) {
-                ForEach(1...6, id: \.self) { item in
-                    DrillCardView(name: "\(item)")
+                
+                // "Join" Button
+                Button {
+                    isJoiningPlan = true
+                } label: {
+                    Image(systemName: "person.badge.plus")
+                        .font(.callout.bold())
+                        .padding(8)
+                        .background(Color.accentColor.opacity(0.2))
+                        .cornerRadius(8)
+                }
+                
+                // "Add New" (Create) Button
+                Button {
+                    isCreatingPlan = true
+                } label: {
+                    Image(systemName: "plus")
+                        .font(.callout.bold())
+                        .padding(8)
+                        .background(Color.accentColor.opacity(0.2))
+                        .cornerRadius(8)
                 }
             }
             .dynamicTypeSize(...DynamicTypeSize.xxLarge)
+            
+            if joinedBuildings.isEmpty {
+                Text("Tap 'Join' or 'Add' to get started.")
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, minHeight: 100)
+            } else {
+                LazyVGrid(columns: columns, spacing: 16) {
+                    ForEach(joinedBuildings) { building in
+                        // Wrap the card in a link to the detail view
+                        NavigationLink(destination: BuildingDetailView(building: building)) {
+                            DrillCardView(building: building)
+                        }
+                    }
+                }
+                .dynamicTypeSize(...DynamicTypeSize.xxLarge)
+            }
         }
         .padding()
         .background(Color(.systemBackground))
@@ -106,50 +195,11 @@ struct DrillPlansSection: View {
         .dynamicTypeSize(...DynamicTypeSize.xxLarge)
     }
 }
-//MARK: Emergency Contact Section
-struct EmergencyContactsSection: View {
-    @Binding var showAddContactSheet: Bool
-    let contactColumns: [GridItem] = [
-        GridItem(.flexible()), GridItem(.flexible())
-    ]
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 8) {
-                Image(systemName: "phone")
-                    .imageScale(.large)
-                Text("Personal Emergency Contact")
-                    .font(.title3.bold())
-            }
-            .dynamicTypeSize(...DynamicTypeSize.xLarge)
-            LazyVGrid(columns: contactColumns, alignment: .leading, spacing: 10) {
-                ForEach(["fruit", "car", "fuitr"], id: \.self) { item in
-                    ContactCardView(name: item)
-                }
-                Button {
-                    showAddContactSheet = true
-                } label: {
-                    HStack(spacing: 6) {
-                        Image(systemName: "plus")
-                            .font(.title3)
-                            .foregroundStyle(Color.white)
-                            .padding(13)
-                            .background(PrimaryGradientView())
-                            .cornerRadius(12)
-                    }
-                    .shadow(color: Color.tertiary .opacity(0.4), radius: 5, x: -2, y: 7)
-                }
-                .accessibilityLabel(Text("Add New Emergency Contact"))
-            }
-        }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(16)
-        .padding(.horizontal)
-        .dynamicTypeSize(...DynamicTypeSize.xxxLarge)
-    }
-}
+
 //MARK: History Section
 struct HistorySection: View {
+    let events: [Event] // Use the 'Event' model
+    
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack(spacing: 10) {
@@ -160,159 +210,69 @@ struct HistorySection: View {
             }
             .padding(.leading, 4)
             .frame(maxWidth: .infinity, alignment: .leading)
-            VStack(alignment: .leading, spacing: 12) {
-                ForEach(1...6, id: \.self) { index in
-                    Text("A List Item")
-                        .frame(maxWidth: .infinity , alignment: .leading)
-                        .padding(.horizontal, 16)
-                        .padding(.top, 10)
-                        .foregroundStyle(Color.primary)
-                      .background(Color(.systemBackground))
-                       // .background(Color.theme.opacity(0.2))
-                        .cornerRadius(12)
-                        .contextMenu {
-                            Button("Delete") {}
-                        }
-                    Divider()
+            
+            if events.isEmpty {
+                Text("No completed drills or events yet.")
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, minHeight: 50)
+            } else {
+                VStack(alignment: .leading, spacing: 12) {
+                    ForEach(events) { event in
+                        HistoryCardView(event: event)
+                        Divider()
+                    }
                 }
             }
         }
         .padding()
-      .background(Color(.systemBackground))
-      //  .background(Color.theme.opacity(0.2))
+        .background(Color(.systemBackground))
         .cornerRadius(16)
         .padding(.horizontal)
         .padding(.vertical, 8)
         .dynamicTypeSize(...DynamicTypeSize.xxLarge)
     }
 }
-//MARK: Add Contact Sheet Section
-struct AddContactSheet: View {
-    @Binding var showAddContactSheet: Bool
-    @Binding var showContactAddedToast: Bool
-    @State private var name: String = ""
-    @State private var phone: String = ""
-    var body: some View {
-        ScrollView {
-            VStack(spacing: 20) {
-                RoundedRectangle(cornerRadius: 2)
-                    .frame(width: 40, height: 5)
-                    .foregroundColor(.gray.opacity(0.4))
-                    .padding(.top, 8)
-                Text("New Contact Details")
-                    .font(.title2.bold())
-                    .padding(.top, 8)
-                    .frame(maxWidth: .infinity, alignment: .center)
-                VStack(spacing: 16) {
-                    VStack(alignment: .leading, spacing: 12) {
-                        Text("Name")
-                            .font(.headline)
-                        TextField("Enter contact name", text: $name)
-                            .padding()
-                            .background(Color(.systemBackground))
-                            .cornerRadius(10)
-                            .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
-                        Text("Phone Number")
-                            .font(.headline)
-                        TextField("Enter phone number", text: $phone)
-                            .padding()
-                            .background(Color(.systemBackground))
-                            .cornerRadius(10)
-                            .shadow(color: Color.black.opacity(0.05), radius: 4, x: 0, y: 2)
-                            .keyboardType(.phonePad)
-                    }
-                    .padding()
-                    .cornerRadius(16)
-                }
-                Button {
-                    withAnimation(.easeInOut) {
-                        showContactAddedToast = true
-                    }
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                        withAnimation(.easeInOut) {
-                            showContactAddedToast = false
-                            showAddContactSheet = false
-                        }
-                    }
-                } label: {
-                    HStack {
-                        Text("Save Contact")
-                            .fontWeight(.semibold)
-                        Image(systemName: "checkmark.circle.fill")
-                    }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 14)
-                    .foregroundColor(.white)
-                    .background(
-                        PrimaryGradientView()
-                    )
-                    .cornerRadius(14)
-                    .shadow(color: Color.tertiary .opacity(0.4), radius: 5, x: -2, y: 7)
-                }
-                .padding(.horizontal)
-                Spacer()
-            }
-            .dynamicTypeSize(...DynamicTypeSize.accessibility2)
+
+//MARK: History Card View
+struct HistoryCardView: View {
+    let event: Event
+    
+    private var endDateText: String {
+        if let endTime = event.endTime {
+            // If it exists, convert the Timestamp to a Date and format it
+            let date = endTime.dateValue()
+            return date.formatted(date: .abbreviated, time: .omitted)
+        } else {
+            // If endTime is nil, the event is still in progress
+            return "In Progress"
         }
-      //  .background(Color(.systemGroupedBackground))
-        .background(Color.theme.opacity(0.1))
-        .overlay(
-            Group {
-                if showContactAddedToast {
-                    Text("Contact added")
-                        .font(.subheadline.bold())
-                        .padding(.vertical, 9)
-                        .padding(.horizontal, 16)
-                        .background(Color.black.opacity(0.5))
-                        .foregroundColor(.white)
-                        .cornerRadius(12)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                        .onAppear {
-                            DispatchQueue.main.asyncAfter(deadline: .now() + 1.5) {
-                                withAnimation(.easeInOut) {
-                                    showContactAddedToast = false
-                                }
-                            }
-                        }
-                        .padding(.top, 10)
-                }
-            },
-            alignment: .bottom
-        )
-        .presentationDetents([.medium])
     }
     
-    // --- 13. ADD: Function to save the contact ---
-    func saveContact() {
-        guard !newContactName.isEmpty,
-              !newContactPhone.isEmpty,
-              let uid = authManager.userSession?.uid else {
-            print("Error: Fields are empty or user is not logged in.")
-            return
-        }
-        
-        let newContact = EmergencyContact(name: newContactName, phone: newContactPhone)
-        
-        Task {
-            let success = await firestoreManager.addEmergencyContact(newContact, for: uid)
-            if success {
-                // Update the local user model
-                authManager.currentUser?.emergencyContacts?.append(newContact)
-                
-                // Clear fields and dismiss sheet
-                newContactName = ""
-                newContactPhone = ""
-                showAddContactSheet = false
-            } else {
-                // TODO: Show an error alert to the user
-                print("Error: Failed to save contact to Firestore.")
+    var body: some View {
+        HStack {
+            Image(systemName: "checkmark.circle.fill")
+                .foregroundColor(.green)
+            VStack(alignment: .leading) {
+                Text(event.eventName)
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                Text(endDateText)
+                    .font(.caption)
+                    .foregroundColor(.secondary)
             }
+            Spacer()
+            Image(systemName: "chevron.right")
+                .foregroundColor(.secondary)
+        }
+        .background(Color(.systemBackground)) // Allow tapping the whole row
+        .contextMenu {
+            Button("Delete", role: .destructive) {}
         }
     }
 }
 
 #Preview {
-    HomeView()
-        .environmentObject(AuthManager()) // Add mock managers for preview
-        .environmentObject(FirestoreManager())
+//    HomeView()
+//        .environmentObject(AuthManager()) // Add mock managers for preview
+//        .environmentObject(FirestoreManager())
 }
