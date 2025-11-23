@@ -11,69 +11,61 @@ internal import Combine
 
 class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
     
-    private let manager = CLLocationManager()
+    // FIX 1: Make the manager public but private(set)
+    public private(set) var manager = CLLocationManager()
     
     // Published properties to update the UI
     @Published var userLocation: CLLocation?
     @Published var permissionStatus: CLAuthorizationStatus
     
-    // A PassthroughSubject to send events to our ViewModel
-    // We'll use this to send "didEnterRegion" events
     let geofenceEventSubject = PassthroughSubject<CLRegion, Never>()
 
     override init() {
         self.permissionStatus = manager.authorizationStatus
         super.init()
         manager.delegate = self
+        // FIX 2: Removed background updates here, only set on startTracking
         manager.desiredAccuracy = kCLLocationAccuracyBestForNavigation
-        manager.allowsBackgroundLocationUpdates = true // Required for tracking
-        manager.showsBackgroundLocationIndicator = true // Required by Apple
     }
     
-    /// 1. Request Location Permission
+    // FIX 3: Simple request
     func requestLocationPermission() {
         if permissionStatus == .notDetermined {
             manager.requestWhenInUseAuthorization()
         }
-        
-        // You also need "Always" permission for geofencing to work in the background.
-        // You should ask for this later, with good justification.
-        // For now, "When in Use" is a good start.
-        
-        // You must also request "Full Accuracy"
-        manager.requestTemporaryFullAccuracyAuthorization(withPurposeKey: "EmergencyLocation")
     }
     
-    /// 2. Start Tracking
+    // FIX 4: Set background properties *before* starting updates
     func startTracking() {
         print("Location Manager: Starting location updates.")
+        manager.allowsBackgroundLocationUpdates = true // Set capability here
+        manager.showsBackgroundLocationIndicator = true
         manager.startUpdatingLocation()
     }
     
-    /// 3. Stop Tracking
     func stopTracking() {
         print("Location Manager: Stopping location updates.")
         manager.stopUpdatingLocation()
+        manager.allowsBackgroundLocationUpdates = false
     }
     
-    /// 4. Start Monitoring a Geofence
+    // MARK: - NEW: Public Geofencing Methods
+    
+    /// Public wrapper to start monitoring a geofence region.
     func startMonitoring(assemblyPoint: CLLocationCoordinate2D, radius: CLLocationDistance, identifier: String) {
-        // Make sure the device can do this
         if CLLocationManager.isMonitoringAvailable(for: CLCircularRegion.self) {
-            
             let region = CLCircularRegion(center: assemblyPoint, radius: radius, identifier: identifier)
-            region.notifyOnEntry = true // We only care when they enter
+            region.notifyOnEntry = true
             region.notifyOnExit = false
-            
             print("Location Manager: Starting to monitor region \(identifier)")
-            manager.startMonitoring(for: region)
+            manager.startMonitoring(for: region) // Call on the internal manager
         }
     }
     
-    /// 5. Stop Monitoring All Geofences
+    /// Public wrapper to stop monitoring all active geofences.
     func stopMonitoringAllRegions() {
         for region in manager.monitoredRegions {
-            manager.stopMonitoring(for: region)
+            manager.stopMonitoring(for: region) // Call on the internal manager
         }
     }
     
@@ -84,7 +76,7 @@ class LocationManager: NSObject, ObservableObject, CLLocationManagerDelegate {
         self.permissionStatus = manager.authorizationStatus
         
         if permissionStatus == .authorizedWhenInUse || permissionStatus == .authorizedAlways {
-            startTracking()
+            // Note: startTracking() is called by the ViewModel when the user explicitly taps "Use My Current Location"
         }
     }
     

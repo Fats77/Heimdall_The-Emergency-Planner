@@ -10,6 +10,7 @@ import Foundation
 import FirebaseFirestore
 import FirebaseAuth
 internal import Combine
+import UIKit // For UIApplication.shared.open
 
 @MainActor
 class AttendanceViewModel: ObservableObject {
@@ -40,8 +41,8 @@ class AttendanceViewModel: ObservableObject {
     }
     
     // --- 3. Firebase Properties ---
-    private let buildingID: String
-    private let eventID: String
+    private let buildingID: String?
+    private let eventID: String?
     private let db = Firestore.firestore()
     private var listener: ListenerRegistration?
     
@@ -57,10 +58,11 @@ class AttendanceViewModel: ObservableObject {
     
     /// Listens for real-time updates on the attendance subcollection
     func listenForAttendanceUpdates() {
+        guard let currentBuildingID = buildingID, let currentEventID = eventID else { return }
         listener?.remove()
         
-        let query = db.collection("buildings").document(buildingID)
-                      .collection("events").document(eventID)
+        let query = db.collection("buildings").document(currentBuildingID)
+                      .collection("events").document(currentEventID)
                       .collection("attendance")
         
         listener = query.addSnapshotListener { [weak self] (snapshot, error) in
@@ -77,10 +79,12 @@ class AttendanceViewModel: ObservableObject {
     
     /// Feature 9: Manually check in a user
     func manualCheckIn(attendee: Attendee) {
-        guard let attendeeID = attendee.id else { return }
+        guard let attendeeID = attendee.id,
+              let currentBuildingID = buildingID,
+              let currentEventID = eventID else { return }
         
-        let docRef = db.collection("buildings").document(buildingID)
-                      .collection("events").document(eventID)
+        let docRef = db.collection("buildings").document(currentBuildingID)
+                      .collection("events").document(currentEventID)
                       .collection("attendance").document(attendeeID)
         
         docRef.updateData([
@@ -92,19 +96,38 @@ class AttendanceViewModel: ObservableObject {
     
     /// Feature 4: Admin can stop the event
     func stopEvent() {
-        let docRef = db.collection("buildings").document(buildingID)
-                      .collection("events").document(eventID)
+        guard let currentBuildingID = buildingID, let currentEventID = eventID else { return }
+        let docRef = db.collection("buildings").document(currentBuildingID)
+                      .collection("events").document(currentEventID)
         
         docRef.updateData([
-            "status": "completed",
+            "status": Event.Status.completed.rawValue,
             "endTime": FieldValue.serverTimestamp()
         ])
     }
     
-    /// Role 5: Export to Excel (Cloud Function)
+    /// Role 5: Export to Excel (CSV Export via Cloud Function)
     func exportToExcel() {
-        // This would call a Cloud Function
-        print("Calling Cloud Function 'exportAttendance' for event \(eventID)")
-        // e.g., EventService.shared.exportEvent(eventID: eventID)
+        guard let currentBuildingID = buildingID, let currentEventID = eventID else { return }
+        
+        print("Starting export report for Event ID: \(currentEventID)")
+        
+        Task {
+            let (success, urlString) = await EventService.shared.exportAttendance(
+                buildingID: currentBuildingID,
+                eventID: currentEventID
+            )
+            
+            if success, let urlString = urlString, let url = URL(string: urlString) {
+                // Open the URL to trigger the download/share sheet
+                await MainActor.run {
+                    UIApplication.shared.open(url)
+                }
+                print("Download URL retrieved and opened: \(url)")
+            } else {
+                print("Export failed: Unable to retrieve download URL.")
+                // TODO: Show alert to user
+            }
+        }
     }
 }

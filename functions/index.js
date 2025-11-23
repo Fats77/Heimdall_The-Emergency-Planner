@@ -36,116 +36,304 @@ const admin = require("firebase-admin");
 admin.initializeApp();
 
 const db = admin.firestore();
+const messaging = admin.messaging();
 
-exports.createBuilding = functions.https.onCall(async (data, context) => {
+/**
+ * [HTTPS Callable] Triggers a new emergency alert.
+ *
+ * 1. Verifies the user is an admin.
+ * 2. Creates a new 'event' document.
+ * 3. Fetches all members of the building.
+ * 4. Fetches their push notification (FCM) tokens.
+ * 5. Sends a push notification to all members.
+ */
+exports.triggerEmergencyAlert = functions.https.onCall(async (data, context) => {
+  
+  // --- 1. Authentication ---
   if (!context.auth) {
     throw new functions.https.HttpsError(
       "unauthenticated",
-      "You must be logged in to create a building." + context.auth,
+      "You must be logged in to trigger an alert."
     );
   }
 
-  const { name, description, admin: adminInfo } = data;
+  const { buildingId, emergencyTypeId, emergencyTypeName } = data;
   const uid = context.auth.uid;
 
-  let inviteCode;
-  let codeExists = true;
-  
-  while (codeExists) {
-    inviteCode = Math.random().toString(36).substring(2, 8).toUpperCase();
-    const snapshot = await db.collection("buildings")
-                             .where("inviteCode", "==", inviteCode)
-                             .get();
-    codeExists = !snapshot.empty;
+  // --- 2. Verify Admin Role ---
+  try {
+    const memberDoc = await db
+      .collection("buildings")
+      .doc(buildingId)
+      .collection("members")
+      .doc(uid)
+      .get();
+
+    if (!memberDoc.exists || memberDoc.data().role !== "admin") {
+      throw new functions.https.HttpsError(
+        "permission-denied",
+        "You must be an admin of this building to trigger an alert."
+      );
+    }
+  } catch (error) {
+    throw new functions.https.HttpsError("internal", error.message);
   }
 
+  // --- 3. Create the Event Document ---
+  let eventRef;
   try {
-    // 4. Create the new building document
-    const buildingRef = db.collection("buildings").doc();
-    await buildingRef.set({
-      name: name,
-      description: description,
-      inviteCode: inviteCode,
-    });
-
-    const memberRef = buildingRef.collection("members").doc(uid);
-    // ...
-    await memberRef.set({
-        uid: uid, // <-- ADD THIS LINE
-        displayName: adminInfo.displayName,
-        email: adminInfo.email,
-        role: "admin",
-    });
-// ...  
-
-    return { success: true, buildingId: buildingRef.id, inviteCode: inviteCode };
+    eventRef = await db
+      .collection("buildings")
+      .doc(buildingId)
+      .collection("events")
+      .add({
+        emergencyTypeID: emergencyTypeId,
+        eventName: `${emergencyTypeName} Alert`,
+        startTime: admin.firestore.FieldValue.serverTimestamp(),
+        endTime: null,
+        status: "active", // 'active' or 'completed'
+        triggeredBy: uid,
+        type: "alert", // 'alert' or 'drill'
+      });
   } catch (error) {
-    console.error("Error creating building:", error);
-    throw new functions.https.HttpsError(
-      "internal",
-      "An error occurred while creating the building.",
-    );
+    throw new functions.https.HttpsError("internal", "Could not create event doc.");
+  }
+  
+  // --- 4. Get All Members ---
+  const membersSnapshot = await db
+    .collection("buildings")
+    .doc(buildingId)
+    .collection("members")
+    .get();
+  
+  const memberIds = membersSnapshot.docs.map((doc) => doc.id);
+
+  // --- 5. Get Member FCM Tokens ---
+  // We must store the FCM token in the user's main doc, e.g., /users/{userID}
+  const tokenPromises = memberIds.map((id) => db.collection("users").doc(id).get());
+  const userDocs = await Promise.all(tokenPromises);
+  
+  const tokens = userDocs
+    .map((doc) => doc.data().fcmToken) // Assumes you store a token here!
+    .filter((token) => token); // Remove any null/undefined tokens
+
+  if (tokens.length === 0) {
+    console.log("No FCM tokens found for members. Event created but no notifications sent.");
+    return { status: "success", message: "Event started, but no members to notify." };
+  }
+
+  // --- 6. Send Push Notifications ---
+  try {
+    // This is the payload for the push notification
+    const payload = {
+      notification: {
+        title: "🚨 EMERGENCY ALERT 🚨",
+        body: `An active ${emergencyTypeName} alert has been triggered for your building.`,
+      },
+      data: {
+        // These fields let your app know what to do when it's tapped
+        type: "EMERGENCY_ALERT",
+        buildingId: buildingId,
+        eventId: eventRef.id,
+        emergencyTypeID: emergencyTypeId,
+      },
+      apns: { // Apple-specific settings
+        payload: {
+          aps: {
+            sound: "default", // Use a default sound
+            'content-available': 1, // Wakes app in background
+          },
+        },
+        headers: {
+          'apn-priority': '10', // High priority
+        },
+      },
+      tokens: tokens, // The array of tokens to send to
+    };
+
+    const response = await messaging.sendMulticast(payload);
+    console.log("Notification response:", response);
+
+    return { status: "success", message: "Alert successfully triggered!" };
+
+  } catch (error) {
+    console.error("Error sending push notifications:", error);
+    throw new functions.https.HttpsError("internal", "Event created, but failed to send notifications.");
   }
 });
 
-exports.joinBuilding = functions.https.onCall(async (data, context) => {
-  // 1. Check for authentication
+// --- 1. [HTTPS Callable] Trigger Emergency Alert (Admin Only) ---
+exports.triggerEmergencyAlert = functions.https.onCall(async (data, context) => {
+  
+  // --- Authentication ---
   if (!context.auth) {
     throw new functions.https.HttpsError(
       "unauthenticated",
-      "You must be logged in to join a building.",
+      "You must be logged in to trigger an alert."
     );
   }
 
-  const { inviteCode } = data;
+  const { buildingId, emergencyTypeId, emergencyTypeName } = data;
   const uid = context.auth.uid;
 
-  if (!inviteCode) {
+  // --- Verify Admin Role ---
+  const memberDoc = await db
+    .collection("buildings")
+    .doc(buildingId)
+    .collection("members")
+    .doc(uid)
+    .get();
+
+  if (!memberDoc.exists || memberDoc.data().role !== "admin") {
     throw new functions.https.HttpsError(
-      "invalid-argument",
-      "Invite code is required.",
+      "permission-denied",
+      "You must be an admin of this building to trigger an alert."
     );
+  }
+
+  // --- Create the Event Document ---
+  let eventRef;
+  try {
+    eventRef = await db
+      .collection("buildings")
+      .doc(buildingId)
+      .collection("events")
+      .add({
+        emergencyTypeID: emergencyTypeId,
+        eventName: `${emergencyTypeName} Alert`,
+        startTime: admin.firestore.FieldValue.serverTimestamp(),
+        endTime: null,
+        status: "active",
+        triggeredBy: uid,
+        type: "alert",
+      });
+  } catch (error) {
+    console.error("Error creating event doc:", error);
+    throw new functions.https.HttpsError("internal", "Could not create event document.");
+  }
+  
+  // --- Get Member FCM Tokens ---
+  const membersSnapshot = await db
+    .collection("buildings")
+    .doc(buildingId)
+    .collection("members")
+    .get();
+  
+  const memberIds = membersSnapshot.docs.map((doc) => doc.id);
+  
+  const tokenPromises = memberIds.map((id) => db.collection("users").doc(id).get());
+  const userDocs = await Promise.all(tokenPromises);
+  
+  const tokens = userDocs
+    .map((doc) => doc.data()?.fcmToken) // Use optional chaining
+    .filter((token) => token); 
+
+  // --- Send Push Notifications ---
+  if (tokens.length === 0) {
+    return { status: "warning", message: "Event started, but no members to notify (no tokens found)." };
   }
 
   try {
-    const snapshot = await db.collection("buildings")
-                             .where("inviteCode", "==", inviteCode)
-                             .limit(1)
-                             .get();
+    const payload = {
+      notification: {
+        title: "🚨 EMERGENCY ALERT 🚨",
+        body: `An active ${emergencyTypeName} alert has been triggered for your building.`,
+      },
+      data: {
+        type: "EMERGENCY_ALERT",
+        buildingId: buildingId,
+        eventId: eventRef.id,
+        emergencyTypeID: emergencyTypeId,
+      },
+      apns: {
+        payload: {
+          aps: {
+            sound: "default",
+            'content-available': 1,
+          },
+        },
+        headers: {
+          'apn-priority': '10',
+        },
+      },
+      tokens: tokens,
+    };
 
-    if (snapshot.empty) {
-      return { success: false, error: "Invalid invite code" };
-    }
+    await messaging.sendMulticast(payload);
+    return { status: "success", message: "Alert successfully triggered!" };
 
-    const buildingDoc = snapshot.docs[0];
-    const buildingId = buildingDoc.id;
-
-    const userDoc = await db.collection("users").doc(uid).get();
-    if (!userDoc.exists) {
-      throw new functions.https.HttpsError("not-found", "User profile not found.");
-    }
-    const userData = userDoc.data();
-
-    const memberRef = db.collection("buildings")
-                        .doc(buildingId)
-                        .collection("members")
-                        .doc(uid);
-    
-    // ...
-    await memberRef.set({
-        uid: uid, // <-- ADD THIS LINE
-        displayName: userData.displayName,
-        email: userData.email,
-        role: "member", // Default role
-    });
-    // ...
-
-    return { success: true, buildingId: buildingId };
   } catch (error) {
-    console.error("Error joining building:", error);
-    throw new functions.https.HttpsError(
-      "internal",
-      "An error occurred while joining the building.",
-    );
+    console.error("Error sending push notifications:", error);
+    throw new functions.https.HttpsError("internal", "Event created, but failed to send notifications.");
   }
+});
+
+
+// --- 2. [HTTPS Callable] Export Attendance Report (Admin/Coordinator Only) ---
+exports.exportAttendanceReport = functions.https.onCall(async (data, context) => {
+
+  // --- 1. Authentication and Role Check ---
+  if (!context.auth) {
+    throw new functions.https.HttpsError("unauthenticated", "Authentication required.");
+  }
+
+  const { buildingId, eventId } = data;
+  const uid = context.auth.uid;
+
+  // Check if user is Admin or Coordinator (Role 5 restriction)
+  const memberDoc = await db.collection("buildings").doc(buildingId).collection("members").doc(uid).get();
+  const userRole = memberDoc.data()?.role;
+
+  if (userRole !== 'admin' && userRole !== 'coordinator') {
+    throw new functions.https.HttpsError("permission-denied", "Access denied. Only Admins and Coordinators can export reports.");
+  }
+
+  // --- 2. Fetch Data ---
+  const [eventDoc, attendanceSnapshot] = await Promise.all([
+    db.collection("buildings").doc(buildingId).collection("events").doc(eventId).get(),
+    db.collection("buildings").doc(buildingId).collection("events").doc(eventId).collection("attendance").get()
+  ]);
+
+  const eventData = eventDoc.data();
+  if (!eventData) {
+    throw new functions.https.HttpsError("not-found", "Event not found.");
+  }
+
+  // --- 3. Format CSV ---
+  // Note: Added an extra header field for clearer reporting: Event Name/Date
+  const headers = "Event Name,Status,Check-In Time,Manual Check-in By\n";
+
+  const rows = attendanceSnapshot.docs.map(doc => {
+    const data = doc.data();
+    const status = data.status || 'inProgress';
+    const checkInTime = data.safeTimestamp ? data.safeTimestamp.toDate().toISOString() : '';
+    const checkedInBy = data.manuallyCheckedInBy || '';
+
+    // Using display name from the attendance doc (data.name) and sanitize for CSV
+    const name = (data.name || 'Unknown User').replace(/"/g, '""'); 
+
+    return `"${name}","${status}","${checkInTime}","${checkedInBy}"`;
+  }).join('\n');
+
+  const csvContent = headers + rows;
+  const fileName = `attendance_report_${eventData.eventName.replace(/[^a-z0-9]/gi, '_')}_${eventId}_${Date.now()}.csv`;
+  const file = storage.bucket().file(`reports/${buildingId}/${fileName}`);
+
+  // --- 4. Upload CSV to Storage ---
+  await file.save(csvContent, {
+    contentType: 'text/csv',
+    metadata: {
+      cacheControl: 'private, max-age=300' 
+    }
+  });
+
+  // --- 5. Generate Signed URL (valid for 30 minutes) ---
+  const [url] = await file.getSignedUrl({
+    action: 'read',
+    expires: Date.now() + 1800 * 1000, // 30 minutes
+    contentType: 'text/csv'
+  });
+
+  // --- 6. Return URL ---
+  return { status: "success", downloadUrl: url };
 });

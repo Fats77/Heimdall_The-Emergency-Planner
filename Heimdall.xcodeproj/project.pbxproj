@@ -57,8 +57,10 @@
 				Views/AdminViews/CreateFloorView.swift,
 				Views/AdminViews/CreateInstructionStepView.swift,
 				Views/AdminViews/CreatePlan.swift,
+				Views/AdminViews/EditBuildingView.swift,
 				Views/AdminViews/FloorDetailView.swift,
 				Views/AdminViews/InstructionsListView.swift,
+				Views/AdminViews/ManageMembersView.swift,
 				Views/AdminViews/MemberAttendanceView.swift,
 				Views/AdminViews/TriggerAlertView.swift,
 				Views/Components/ChecklistCardView.swift,
@@ -82,8 +84,10 @@
 				Views/AdminViews/CreateFloorView.swift,
 				Views/AdminViews/CreateInstructionStepView.swift,
 				Views/AdminViews/CreatePlan.swift,
+				Views/AdminViews/EditBuildingView.swift,
 				Views/AdminViews/FloorDetailView.swift,
 				Views/AdminViews/InstructionsListView.swift,
+				Views/AdminViews/ManageMembersView.swift,
 				Views/AdminViews/MemberAttendanceView.swift,
 				Views/AdminViews/TriggerAlertView.swift,
 				Views/Components/ChecklistCardView.swift,
@@ -493,14 +497,15 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Heimdall/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "";
-				INFOPLIST_KEY_LSApplicationCategoryType = "";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "We need your location information for assembly point automatic detection";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location information for assembly point automatic detection";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Used to find assembly points and track your location during an active drill or emergency.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Required to enable real-time tracking and emergency check-in notifications even when the app is in the background.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -531,14 +536,15 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = Heimdall/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = "";
-				INFOPLIST_KEY_LSApplicationCategoryType = "";
-				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "We need your location information for assembly point automatic detection";
-				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "We need your location information for assembly point automatic detection";
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.utilities";
+				INFOPLIST_KEY_NSLocationAlwaysAndWhenInUseUsageDescription = "Used to find assembly points and track your location during an active drill or emergency.";
+				INFOPLIST_KEY_NSLocationWhenInUseUsageDescription = "Required to enable real-time tracking and emergency check-in notifications even when the app is in the background.";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UIUserInterfaceStyle = Light;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",

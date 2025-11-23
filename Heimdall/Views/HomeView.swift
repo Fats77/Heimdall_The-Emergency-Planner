@@ -8,88 +8,87 @@
 
 import SwiftUI
 import FirebaseAuth
+import Kingfisher // For loading profile and building images
 import FirebaseCore
+
+// MARK: - Theme Colors (Based on Design Image)
+extension Color {
+    static let tagActive = Color(red: 0.3, green: 0.7, blue: 0.3) // Green for Active
+    static let tagPending = Color(red: 0.95, green: 0.7, blue: 0.2) // Yellow/Orange for Pending
+    static let secondaryBackground = Color(UIColor.systemGray6)
+}
 
 struct HomeView: View {
     
-    // Use the ViewModel to manage all data for this screen
     @StateObject private var viewModel = HomeViewModel()
+    @EnvironmentObject var authManager: AuthService
     
-    // Get the global AuthManager (as you named it)
-    @EnvironmentObject var authManager: AuthService // Using our AuthService
-    
-    // States for presenting sheets and alerts
     @State private var isCreatingPlan = false
     @State private var isJoiningPlan = false
     @State private var isShowingProfile = false
     
-    // State for the "Join" alert
     @State private var inviteCode = ""
 
     var body: some View {
         NavigationStack {
             ScrollView {
-                // Pass user data and profile binding to the header
-                HeaderView(
-                    name: authManager.currentUser?.displayName ?? "User",
-                    photoURL: authManager.currentUser?.photoURL,
-                    isShowingProfile: $isShowingProfile
-                )
-                
-                // Pass the building data and bindings to the plans section
-                MyPlansSection(
-                    joinedBuildings: viewModel.joinedBuildings,
-                    isCreatingPlan: $isCreatingPlan,
-                    isJoiningPlan: $isJoiningPlan
-                )
-                
-                // Pass the completed events to the history section
-                HistorySection(events: viewModel.completedEvents)
+                VStack(spacing: 0) {
+                    // 1. TOP HEADER & ACTION BUTTONS
+                    HeaderSection(
+                        userDisplayName: authManager.currentUser?.displayName ?? "User",
+                        userPhotoURL: authManager.currentUser?.photoURL,
+                        isCreatingPlan: $isCreatingPlan,
+                        isJoiningPlan: $isJoiningPlan,
+                        isShowingProfile: $isShowingProfile
+                    )
+                    .padding(.bottom, 20)
+                    
+                    // 2. MY PLANS SECTION
+                    MyPlansSection(
+                        joinedBuildings: viewModel.joinedBuildings
+                    )
+                    
+                    // 3. HISTORY SECTION (Replaced Emergency Contacts)
+                    HistorySection(
+                        events: viewModel.completedEvents
+                    )
+                }
             }
-            .background(Color.tertiary.opacity(0.4))
+            .background(Color.secondaryBackground)
+            .ignoresSafeArea(edges: .top) // Extend background under the safe area
             .dynamicTypeSize(...DynamicTypeSize.xxLarge)
-            .navigationTitle("Home") // Add a title for the navigation stack
-            .navigationBarHidden(true) // Hide the default bar
+            .navigationTitle("Home")
+            .navigationBarHidden(true)
         }
-        .refreshable(action: {
-            viewModel.fetchJoinedBuildings()
-            viewModel.fetchCompletedEvents()
-        })
-        // Sheet for Creating a new plan
         .sheet(isPresented: $isCreatingPlan) {
             NavigationStack { CreateBuildingView() }
         }
-        // Sheet for viewing the Profile
         .sheet(isPresented: $isShowingProfile) {
             NavigationStack {
-                // We will build this view next
                 ProfileView()
                     .environmentObject(authManager)
             }
         }
-        // Alert for Joining a plan
+        // Alert for Joining a plan (Same as before)
         .alert("Join a Plan", isPresented: $isJoiningPlan, actions: {
             TextField("Enter Invite Code", text: $inviteCode)
                 .autocapitalization(.allCharacters)
-            
             Button("Join", action: {
                 Task {
                    await viewModel.joinBuilding(with: inviteCode)
-                   inviteCode = "" // Clear the field
+                   inviteCode = ""
                 }
             })
             Button("Cancel", role: .cancel, action: { inviteCode = "" })
         }, message: {
             Text("Please enter the 6-character invite code provided by your admin.")
         })
-        // Alert for any errors
         .alert("Error", isPresented: $viewModel.showError, presenting: viewModel.errorMessage, actions: { _ in
             Button("OK") {}
         }, message: { message in
             Text(message)
         })
         .onAppear {
-            // Fetch all data when the view appears
             viewModel.fetchJoinedBuildings()
             viewModel.fetchCompletedEvents()
             NotificationService.shared.requestNotificationPermission()
@@ -97,177 +96,246 @@ struct HomeView: View {
     }
 }
 
-struct HeaderView: View {
-    let name: String
-    let photoURL: URL?
+// MARK: - 1. Header Section
+struct HeaderSection: View {
+    let userDisplayName: String
+    let userPhotoURL: URL?
+    @Binding var isCreatingPlan: Bool
+    @Binding var isJoiningPlan: Bool
     @Binding var isShowingProfile: Bool
     
     var body: some View {
-        HStack {
-            Text("Hello, \(name)")
-                .font(.largeTitle.bold())
-                .foregroundColor(Color.primary)
+        ZStack(alignment: .top) {
+            // Background color that curves slightly
+            Color.theme
+                .frame(height: 220)
             
-            Spacer()
-            
-            Button {
-                isShowingProfile = true
-            } label: {
-                // TODO: Load image from photoURL
-                Image(systemName: "person.crop.circle")
-                    .resizable()
-                    .scaledToFit()
-                    .frame(width: 40, height: 40)
-                    .clipShape(Circle())
-                    .shadow(color: Color.tertiary.opacity(0.4), radius: 5, x: -2, y: 7)
-            }
-        }
-        .padding(.horizontal)
-        .padding(.vertical, 5)
-    }
-}
-
-//MARK: Drill Plan Section
-struct MyPlansSection: View {
-    let joinedBuildings: [CreateBuildingViewModel.Building]
-    @Binding var isCreatingPlan: Bool
-    @Binding var isJoiningPlan: Bool
-    
-    let columns: [GridItem] = [
-        GridItem(.flexible()), GridItem(.flexible())
-    ]
-    
-    var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack {
-                Text("My Plans")
-                    .font(.title3.bold())
-                    .foregroundColor(Color.primary)
-                
-                Spacer()
-                
-                // "Join" Button
-                Button {
-                    isJoiningPlan = true
-                } label: {
-                    Image(systemName: "person.badge.plus")
-                        .font(.callout.bold())
-                        .padding(8)
-                        .background(Color.accentColor.opacity(0.2))
-                        .cornerRadius(8)
-                }
-                
-                // "Add New" (Create) Button
-                Button {
-                    isCreatingPlan = true
-                } label: {
-                    Image(systemName: "plus")
-                        .font(.callout.bold())
-                        .padding(8)
-                        .background(Color.accentColor.opacity(0.2))
-                        .cornerRadius(8)
-                }
-            }
-            .dynamicTypeSize(...DynamicTypeSize.xxLarge)
-            
-            if joinedBuildings.isEmpty {
-                Text("Tap 'Join' or 'Add' to get started.")
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, minHeight: 100)
-            } else {
-                LazyVGrid(columns: columns, spacing: 16) {
-                    ForEach(joinedBuildings) { building in
-                        // Wrap the card in a link to the detail view
-                        NavigationLink(destination: BuildingDetailView(building: building)) {
-                            DrillCardView(building: building)
+            VStack(alignment: .leading, spacing: 10) {
+                // Top Row (Greeting and Profile)
+                HStack {
+                    VStack(alignment: .leading) {
+                        Text("Hello, \(userDisplayName)")
+                            .font(.title.bold())
+                            .foregroundColor(.white)
+                        Text("Stay prepared, stay safe")
+                            .font(.subheadline)
+                            .foregroundColor(.white.opacity(0.8))
+                    }
+                    
+                    Spacer()
+                    
+                    // Profile Button (Top Right)
+                    Button {
+                        isShowingProfile = true
+                    } label: {
+                        ZStack {
+                            Circle()
+                                .fill(.white.opacity(0.3))
+                                .frame(width: 40, height: 40)
+                            Image(systemName: "person.fill")
+                                .foregroundColor(.white)
                         }
                     }
                 }
-                .dynamicTypeSize(...DynamicTypeSize.xxLarge)
+                .padding(.top, 70) // Push down from safe area
+                
+                Spacer()
+                
+                // Action Buttons (Create Plan / Join Plan)
+                HStack(spacing: 16) {
+                    ActionButton(title: "Create Plan", icon: "plus", action: { isCreatingPlan = true })
+                    ActionButton(title: "Join Plan", icon: "link", action: { isJoiningPlan = true })
+                }
+                .padding(.bottom, 20) // Spacing from content below
             }
+            .padding(.horizontal)
         }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(16)
-        .shadow(color: Color.black.opacity(0.1), radius: 8, x: 0, y: 3)
-        .padding(.horizontal)
-        .padding(.vertical, 8)
-        .dynamicTypeSize(...DynamicTypeSize.xxLarge)
     }
 }
 
-//MARK: History Section
-struct HistorySection: View {
-    let events: [Event] // Use the 'Event' model
+// MARK: - Action Button Component
+struct ActionButton: View {
+    let title: String
+    let icon: String
+    let action: () -> Void
     
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
-            HStack(spacing: 10) {
-                Image(systemName: "clock")
-                    .imageScale(.large)
-                Text("History")
-                    .font(.title3.bold())
+        Button(action: action) {
+            HStack {
+                Image(systemName: icon)
+                Text(title)
+                    .fontWeight(.semibold)
             }
-            .padding(.leading, 4)
-            .frame(maxWidth: .infinity, alignment: .leading)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 12)
+            .background(Color.white.opacity(0.2)) // Slightly transparent background
+            .foregroundColor(.white)
+            .cornerRadius(12)
+            .shadow(color: .black.opacity(0.1), radius: 5, x: 0, y: 3)
+        }
+    }
+}
+
+
+// MARK: - 2. My Plans Section (Cards)
+struct MyPlansSection: View {
+    let joinedBuildings: [Building]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 5) {
+            // Section Header
+            HStack {
+                Text("My Plans")
+                    .font(.title2.bold())
+            }
+            .padding(.horizontal)
             
-            if events.isEmpty {
-                Text("No completed drills or events yet.")
+            // Cards List
+            if joinedBuildings.isEmpty {
+                Text("Tap 'Join Plan' or 'Create Plan' to get started.")
                     .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, minHeight: 50)
+                    .padding(.horizontal)
             } else {
-                VStack(alignment: .leading, spacing: 12) {
-                    ForEach(events) { event in
-                        HistoryCardView(event: event)
-                        Divider()
+                ForEach(joinedBuildings) { building in
+                    NavigationLink(destination: BuildingDetailView(building: building)) {
+                        BuildingCard(building: building)
                     }
                 }
             }
         }
-        .padding()
-        .background(Color(.systemBackground))
-        .cornerRadius(16)
-        .padding(.horizontal)
-        .padding(.vertical, 8)
-        .dynamicTypeSize(...DynamicTypeSize.xxLarge)
+        .padding(.bottom, 30)
+        .frame(maxWidth: .infinity, alignment: .leading)
     }
 }
 
-//MARK: History Card View
-struct HistoryCardView: View {
+// MARK: - Building Card Component
+struct BuildingCard: View {
+    let building: Building
+    
+    // Placeholder logic for the status tag (needs actual Firestore event check)
+    @State private var mockStatus: Bool = Bool.random() // Temp: Mock Active/Pending
+    
+    var body: some View {
+        HStack(alignment: .top, spacing: 15) {
+            // Icon / Photo (using a placeholder based on building name hash)
+            VStack {
+                if let photoURLString = building.buildingImageURL, let url = URL(string: photoURLString) {
+                    KFImage(url)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(width: 50, height: 50)
+                        .clipped()
+                        .cornerRadius(10)
+                } else {
+                    Image(systemName: "building.2.fill")
+                        .resizable()
+                        .padding(8)
+                        .frame(width: 50, height: 50)
+                        .foregroundColor(.white)
+                        .background(Color.theme.opacity(0.7))
+                        .cornerRadius(10)
+                }
+            }
+
+            VStack(alignment: .leading, spacing: 4) {
+                // Name
+                Text(building.name)
+                    .font(.headline)
+                    .foregroundColor(.primary)
+                
+                // Description (Subtitle)
+                Text(building.description ?? "Plan details available.")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                
+//                HStack(spacing: 15) {
+//                    Text("?? participants")
+//                        .font(.caption2)
+//                        .foregroundColor(.secondary)
+//                }
+//                .padding(.top, 4)
+            }
+            Spacer()
+        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 3)
+        .padding(.horizontal)
+    }
+}
+
+
+// MARK: - 3. History Section (Replacing Emergency Contacts)
+struct HistorySection: View {
+    let events: [Event]
+    
+    var body: some View {
+        VStack(alignment: .leading, spacing: 15) {
+            HStack {
+                Text("History")
+                    .font(.title2.bold())
+            }
+            .padding(.horizontal)
+            
+            // List of History Items
+            if events.isEmpty {
+                Text("No completed drills or events yet.")
+                    .foregroundColor(.secondary)
+                    .padding(.horizontal)
+            } else {
+                ForEach(events) { event in
+                    HistoryCard(event: event)
+                }
+            }
+        }
+        .padding(.bottom, 30)
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+}
+
+// MARK: - History Card Component (Styled like the Contact Card)
+struct HistoryCard: View {
     let event: Event
     
-    private var endDateText: String {
+    private var eventDate: String {
         if let endTime = event.endTime {
-            // If it exists, convert the Timestamp to a Date and format it
-            let date = endTime.dateValue()
-            return date.formatted(date: .abbreviated, time: .omitted)
-        } else {
-            // If endTime is nil, the event is still in progress
-            return "In Progress"
+            return endTime.dateValue().formatted(date: .abbreviated, time: .omitted)
         }
+        return "N/A"
     }
     
     var body: some View {
-        HStack {
-            Image(systemName: "checkmark.circle.fill")
-                .foregroundColor(.green)
+        HStack(spacing: 15) {
+            // Icon placeholder
+            Image(systemName: "clock.badge.checkmark.fill")
+                .resizable()
+                .padding(10)
+                .frame(width: 50, height: 50)
+                .foregroundColor(.white)
+                .background(Color.gray.opacity(0.7))
+                .clipShape(Circle())
+            
             VStack(alignment: .leading) {
                 Text(event.eventName)
                     .font(.headline)
                     .foregroundColor(.primary)
-                Text(endDateText)
+                Text("Completed: \(eventDate)")
                     .font(.caption)
                     .foregroundColor(.secondary)
             }
+            
             Spacer()
+            
+            // Call icon replaced with a detail arrow
             Image(systemName: "chevron.right")
                 .foregroundColor(.secondary)
         }
-        .background(Color(.systemBackground)) // Allow tapping the whole row
-        .contextMenu {
-            Button("Delete", role: .destructive) {}
-        }
+        .padding()
+        .background(Color(.systemBackground))
+        .cornerRadius(16)
+        .shadow(color: .black.opacity(0.05), radius: 5, x: 0, y: 3)
+        .padding(.horizontal)
     }
 }
 

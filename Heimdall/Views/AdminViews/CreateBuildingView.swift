@@ -7,6 +7,7 @@
 
 import SwiftUI
 import PhotosUI
+import Kingfisher
 
 struct CreateBuildingView: View {
     
@@ -48,17 +49,18 @@ struct CreateBuildingView: View {
                                 photoLibrary: .shared()
                             ) {
                                 ZStack {
+                                    RoundedRectangle(cornerRadius: 12)
+                                        .fill(Color(.systemGray6))
+                                        .frame(height: 200)
+                                    
                                     if let image = viewModel.selectedImage {
                                         Image(uiImage: image)
                                             .resizable()
                                             .scaledToFill()
                                             .frame(height: 200)
                                             .clipped()
+                                            .cornerRadius(12)
                                     } else {
-                                        RoundedRectangle(cornerRadius: 12)
-                                            .fill(Color(.systemGray6))
-                                            .frame(height: 200)
-                                        
                                         VStack {
                                             Image(systemName: "photo.on.rectangle.angled")
                                                 .font(.largeTitle)
@@ -120,23 +122,23 @@ struct CreateBuildingView: View {
                                 .font(.headline.bold())
                                 .frame(maxWidth: .infinity)
                                 .padding()
-                                .background(accentColor)
+                                .background(Color.theme)
                                 .foregroundColor(.white)
                                 .cornerRadius(12)
-                                .shadow(color: accentColor.opacity(0.4), radius: 6, x: 0, y: 3)
+                                .shadow(color: Color.theme.opacity(0.4), radius: 6, x: 0, y: 3)
                         }
-                        .disabled(viewModel.isLoading) // Disable button while saving
+                        .disabled(viewModel.isLoading || viewModel.name.isEmpty) // Disable button while saving
                         
                     }
                     .padding(24)
-                    .background(colorScheme == .dark ? Color.clear : Color.white)
+                    .background(Color(.systemBackground))
                     .cornerRadius(20)
-                    .shadow(color: Color.tertiary.opacity(0.6), radius: 5, x: 0, y: 2)
+                    .shadow(color: Color.gray.opacity(0.6), radius: 5, x: 0, y: 2)
                 }
                 .padding()
                 .dynamicTypeSize(...DynamicTypeSize.accessibility1)
             }
-            .background(Color(.theme.opacity(0.1)).ignoresSafeArea())
+            .background(Color(.systemGray6).ignoresSafeArea())
             // Show an alert if an error occurs
             .alert("Error", isPresented: $viewModel.showError, presenting: viewModel.errorMessage) { message in
                 Button("OK") {}

@@ -5,7 +5,6 @@
 //  Created by Kemas Deanova on 17/11/25.
 //
 
-
 import Foundation
 import CoreLocation
 internal import Combine
@@ -34,13 +33,11 @@ class ActiveEmergencyViewModel: ObservableObject {
     private var eventListener: ListenerRegistration?
     private var attendanceListener: ListenerRegistration?
     
-    // Models for data
-    struct AssemblyPoint: Codable {
-        var name: String
-        var latitude: Double
-        var longitude: Double
-    }
-
+    // FIX 1: Store the LocationManager instance reference
+    private var activeLocationManager: LocationManager?
+    
+    // Models for data (AssemblyPoint structure is globally available via Models.swift)
+    
     init(buildingID: String, eventID: String, emergencyTypeID: String,
          geofencePublisher: AnyPublisher<CLRegion, Never>) {
         
@@ -60,6 +57,9 @@ class ActiveEmergencyViewModel: ObservableObject {
     
     /// Called from the View's .onAppear
     func start(locationManager: LocationManager) {
+        // FIX 2: Store the instance here
+        self.activeLocationManager = locationManager
+        
         Task {
             await fetchEmergencyData(locationManager: locationManager)
         }
@@ -67,33 +67,40 @@ class ActiveEmergencyViewModel: ObservableObject {
         listenForAttendanceChanges()
     }
     
-    /// 1. Fetches assembly points and instructions, then tells LocationManager to start
+    /// 1. Fetches emergency data (including assembly points) and starts tracking
     private func fetchEmergencyData(locationManager: LocationManager) async {
         do {
-            // This is complex: the data is nested.
-            // A better way: The push notification should include the emergencyType doc path.
-            // For now, let's assume we can fetch it.
-            
-            // This is a placeholder for your actual data fetching
-            // You need to fetch the 'emergencyType' doc from Firestore
-            
-            // MOCK DATA:
-            let points = [
-                AssemblyPoint(name: "Main Lobby", latitude: 37.332331, longitude: -122.031219),
-                AssemblyPoint(name: "Parking Lot", latitude: 37.3321, longitude: -122.031)
-            ]
-            
-            // Tell the location manager to monitor these points
-            for (index, point) in points.enumerated() {
-                locationManager.startMonitoring(
-                    assemblyPoint: .init(latitude: point.latitude, longitude: point.longitude),
-                    radius: 100, // 100 meters
-                    identifier: "assembly_point_\(index)"
-                )
+            // FIX: Use a Collection Group Query to find the EmergencyType document
+            // anywhere under this building, avoiding the hard-coded floorID path.
+            let querySnapshot = try await db.collectionGroup("emergencyTypes")
+                .whereField("emergencyTypeID", isEqualTo: emergencyTypeID)
+                .getDocuments()
+
+            // Find the specific document by its ID within the query results
+            guard let doc = querySnapshot.documents.first(where: { $0.documentID == emergencyTypeID }),
+                  let fetchedEmergency = try? doc.data(as: EmergencyType.self)
+            else {
+                print("Error: EmergencyType document not found in any floor subcollection.")
+                return
             }
-            
+
+            self.emergencyType = fetchedEmergency
+
+            // 2. Setup Geofences if points exist
+            if let points = fetchedEmergency.assemblyPoints {
+                for (index, point) in points.enumerated() {
+                    locationManager.startMonitoring(
+                        assemblyPoint: .init(latitude: point.latitude, longitude: point.longitude),
+                        radius: 100, // 100 meters radius
+                        identifier: "assembly_point_\(eventID)_\(index)"
+                    )
+                }
+            }
+
+            locationManager.startTracking() // Start continuous location updates (for real-time admin view)
+
         } catch {
-            print("Error fetching emergency data: \(error.localizedDescription)")
+            print("Error fetching emergency data for tracking: \(error.localizedDescription)")
         }
     }
     
@@ -101,12 +108,18 @@ class ActiveEmergencyViewModel: ObservableObject {
     private func listenForEventChanges() {
         eventListener?.remove()
         let docRef = db.collection("buildings").document(buildingID)
-                       .collection("events").document(eventID)
+                         .collection("events").document(eventID)
         
         eventListener = docRef.addSnapshotListener { [weak self] (snapshot, error) in
             guard let event = try? snapshot?.data(as: Event.self) else { return }
+            
             self?.eventStatus = event.status
-            // TODO: If status becomes 'completed', stop tracking
+            
+            // FIX 3: Implement the stop tracking logic
+            if event.status == .completed {
+                self?.activeLocationManager?.stopTracking()
+                self?.activeLocationManager?.stopMonitoringAllRegions()
+            }
         }
     }
     
@@ -114,11 +127,11 @@ class ActiveEmergencyViewModel: ObservableObject {
     private func listenForAttendanceChanges() {
         attendanceListener?.remove()
         let docRef = db.collection("buildings").document(buildingID)
-                       .collection("events").document(eventID)
-                       .collection("attendance").document(userID)
+                         .collection("events").document(eventID)
+                         .collection("attendance").document(userID)
         
         attendanceListener = docRef.addSnapshotListener { [weak self] (snapshot, error) in
-            guard let attendee = try? snapshot?.data(as: Attendee.self) else { return } 
+            guard let attendee = try? snapshot?.data(as: Attendee.self) else { return }
             self?.userStatus = attendee.status
         }
     }
@@ -126,8 +139,8 @@ class ActiveEmergencyViewModel: ObservableObject {
     /// 4. Marks the user as SAFE in Firestore
     func markUserAsSafe() {
         let docRef = db.collection("buildings").document(buildingID)
-                       .collection("events").document(eventID)
-                       .collection("attendance").document(userID)
+                         .collection("events").document(eventID)
+                         .collection("attendance").document(userID)
         
         // Using 'merge: true' creates the doc if it doesn't exist
         docRef.setData(["status": AttendeeStatus.safe.rawValue], merge: true)
@@ -136,8 +149,8 @@ class ActiveEmergencyViewModel: ObservableObject {
     /// 5. Marks the user as NOT SAFE in Firestore
     func markUserAsNotSafe() {
         let docRef = db.collection("buildings").document(buildingID)
-                       .collection("events").document(eventID)
-                       .collection("attendance").document(userID)
+                         .collection("events").document(eventID)
+                         .collection("attendance").document(userID)
         
         docRef.setData(["status": AttendeeStatus.inProgress.rawValue], merge: true)
     }

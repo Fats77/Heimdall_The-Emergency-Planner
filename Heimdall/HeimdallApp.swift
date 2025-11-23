@@ -85,6 +85,10 @@ struct HeimdallApp: App {
     
     @StateObject private var authService = AuthService()
     
+    init() {
+        // Just to prepare something :)
+    }
+    
     var body: some Scene {
         WindowGroup {
             if authService.currentUser != nil {

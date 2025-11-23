@@ -5,6 +5,7 @@
 //  Created by Kemas Deanova on 17/11/25.
 //
 
+
 import SwiftUI
 import FirebaseFirestore
 
@@ -21,6 +22,11 @@ struct CreateEmergencyTypeView: View {
     @State private var scheduleInterval = "every_month"
     @State private var scheduleDay = 1
     @State private var scheduleTime = Date()
+    @State private var assemblyPoints: [AssemblyPoint] = [] // State to hold points
+    @State private var isAddingAssemblyPoint = false // State for modal
+    @State private var isLoading = false
+    @State private var showError = false
+    @State private var errorMessage = ""
     
     // Picker data
     let emergencyData = [
@@ -53,7 +59,7 @@ struct CreateEmergencyTypeView: View {
                     .pickerStyle(.segmented)
                     .dynamicTypeSize(...DynamicTypeSize.accessibility1)
                 }
-                .padding()
+                .padding(.horizontal)
                 
                 // MARK: - Schedule
                 VStack(alignment: .leading, spacing: 16) {
@@ -93,7 +99,42 @@ struct CreateEmergencyTypeView: View {
                             .cornerRadius(12)
                     }
                 }
-                .padding()
+                .padding(.horizontal)
+                
+                // --- MARK: - Assembly Points Section (Fully Implemented) ---
+                VStack(alignment: .leading, spacing: 16) {
+                    Text("Assembly Points")
+                        .font(.title2.bold())
+                    
+                    if assemblyPoints.isEmpty {
+                        Text("No assembly points set for this emergency type.")
+                            .foregroundColor(.secondary)
+                    } else {
+                        // Use List-style display for deletion capability
+                        VStack(spacing: 0) {
+                            ForEach(assemblyPoints.indices, id: \.self) { index in
+                                PointRow(point: assemblyPoints[index])
+                                    .padding(.vertical, 8)
+                                    .background(Color(.systemBackground))
+                            }
+                            .onDelete(perform: deletePoint) // Enable swipe-to-delete
+                        }
+                        .background(Color(.systemBackground))
+                        .cornerRadius(12)
+                    }
+                    
+                    Button {
+                        isAddingAssemblyPoint = true
+                    } label: {
+                        Label("Add New Assembly Point", systemImage: "mappin.and.ellipse")
+                            .frame(maxWidth: .infinity)
+                            .padding(8)
+                            .background(Color.accentColor.opacity(0.1))
+                            .cornerRadius(8)
+                            .foregroundColor(.accentColor)
+                    }
+                }
+                .padding(.horizontal)
                 
                 // MARK: - Save Button
                 Button(action: {
@@ -101,7 +142,7 @@ struct CreateEmergencyTypeView: View {
                         await saveEmergencyType()
                     }
                 }) {
-                    Text("Save Emergency Type")
+                    Text(isLoading ? "Saving..." : "Save Emergency Type")
                         .font(.headline.bold())
                         .frame(maxWidth: .infinity)
                         .padding()
@@ -109,44 +150,84 @@ struct CreateEmergencyTypeView: View {
                         .foregroundColor(.white)
                         .cornerRadius(12)
                 }
+                .disabled(isLoading)
                 .padding()
             }
         }
         .navigationTitle("New Emergency Plan")
         .background(Color(.systemGray6).ignoresSafeArea())
+        .sheet(isPresented: $isAddingAssemblyPoint) {
+            NavigationStack {
+                // Pass the current array down for modification (Binding)
+                AssemblyPointManagerView(
+                    points: $assemblyPoints,
+                    emergencyType: emergencyType
+                )
+            }
+        }
+        .alert("Error", isPresented: $showError, presenting: errorMessage) { message in
+            Button("OK") {}
+        } message: { message in
+            Text(message)
+        }
     }
     
-    func saveEmergencyType() async {
-        // TODO: Add 'isLoading' state
+    private func deletePoint(offsets: IndexSet) {
+        assemblyPoints.remove(atOffsets: offsets)
+    }
 
+    func saveEmergencyType() async {
+        isLoading = true
         let timeFormatter = DateFormatter()
         timeFormatter.dateFormat = "HH:mm"
-
+        
         var newType = EmergencyType(
             type: emergencyType,
             scheduleDay: scheduleDay,
             scheduleTime: timeFormatter.string(from: scheduleTime),
-            scheduleInterval: scheduleInterval
+            scheduleInterval: scheduleInterval,
+            assemblyPoints: assemblyPoints.isEmpty ? nil : assemblyPoints // Save the points array
         )
-
+        
         do {
             let db = Firestore.firestore()
             let docRef = try await db.collection("buildings").document(buildingID)
                                      .collection("floors").document(floorID)
                                      .collection("emergencyTypes")
                                      .addDocument(from: newType)
-
-            // Get the ID assigned by Firestore and add it to our model
+            
             newType.id = docRef.documentID
-
-            // Call the callback to update the UI
+            
             onSave(newType)
-            dismiss() // Close the sheet
-
+            isLoading = false
+            dismiss()
+            
         } catch {
-            print("Error saving emergency type: \(error.localizedDescription)")
-            // TODO: Show an alert to the user
+            self.errorMessage = "Error saving emergency type: \(error.localizedDescription)"
+            self.showError = true
+            isLoading = false
         }
+    }
+}
+
+// Helper struct for displaying a single assembly point row
+struct PointRow: View {
+    let point: AssemblyPoint
+    
+    var body: some View {
+        HStack {
+            Image(systemName: "mappin.circle.fill")
+                .foregroundColor(.red)
+            VStack(alignment: .leading) {
+                Text(point.name)
+                    .font(.headline)
+                Text("Lat: \(point.latitude, specifier: "%.4f"), Lon: \(point.longitude, specifier: "%.4f")")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            Spacer()
+        }
+        .padding(.horizontal)
     }
 }
 

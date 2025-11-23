@@ -15,9 +15,8 @@ struct EmergencyType: Identifiable, Codable {
     var scheduleTime: String // Storing as "HH:mm"
     var scheduleInterval: String // "every_month", etc.
     
-    // We'll add assemblyPoints and instructions later
+    var assemblyPoints: [AssemblyPoint]?
     
-    // Helper property for display
     var prettyType: String {
         type.capitalized
     }

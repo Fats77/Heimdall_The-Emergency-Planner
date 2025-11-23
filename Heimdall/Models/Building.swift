@@ -11,7 +11,7 @@ import FirebaseFirestore
 struct Building: Codable, Identifiable {
     @DocumentID var id: String?
     let name: String
-    let description: String
+    let description: String?
     var buildingImageURL: String?
     var buildingMapURL: String?
     let inviteCode: String

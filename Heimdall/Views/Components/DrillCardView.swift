@@ -8,7 +8,7 @@
 import SwiftUI
 
 struct DrillCardView: View {
-    let building: CreateBuildingViewModel.Building
+    let building: Building
     
     var body: some View {
         VStack {

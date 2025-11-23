@@ -12,7 +12,7 @@ import FirebaseFirestore
 
 struct FloorDetailView: View {
     // Pass in the building and floor
-    let building: CreateBuildingViewModel.Building
+    let building: Building
     let floor: Floor
     
     @StateObject private var viewModel = FloorDetailViewModel()

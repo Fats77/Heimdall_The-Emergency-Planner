@@ -9,14 +9,14 @@
 import Foundation
 import FirebaseFunctions
 import FirebaseFirestore
+import FirebaseAuth
 
 class EventService {
     
     static let shared = EventService()
-    private var functions = Functions.functions()
+    private var functions = Functions.functions(region: "us-central1")
     
-    // Use this function in your TriggerAlertView
-    func triggerAlert(building: CreateBuildingViewModel.Building, emergency: EmergencyType) async -> (Bool, String) {
+    func triggerAlert(building: Building, emergency: EmergencyType) async -> (Bool, String) {
         
         guard let buildingID = building.id,
               let emergencyTypeID = emergency.id else {
@@ -26,35 +26,35 @@ class EventService {
         let data: [String: Any] = [
             "buildingId": buildingID,
             "emergencyTypeId": emergencyTypeID,
-            "emergencyTypeName": emergency.prettyType // Pass the name for the notification
+            "emergencyTypeName": emergency.prettyType
         ]
         
         do {
-            // Call the cloud function by its name
-            let result = try await functions.httpsCallable("triggerEmergencyAlert").call(data)
-            
-            // Handle the response from the function
-            if let responseData = result.data as? [String: Any],
-               let status = responseData["status"] as? String, status == "success" {
-                let message = responseData["message"] as? String ?? "Alert triggered."
-                print("Success: \(message)")
-                return (true, message)
-            } else {
-                return (false, "Failed to trigger alert.")
-            }
-            
+            _ = try await functions.httpsCallable("triggerEmergencyAlert").call(data)
+            return (true, "Alert successfully triggered!")
         } catch {
-            // Handle specific Firebase errors
-            let nsError = error as NSError
-            if nsError.domain == FunctionsErrorDomain {
-                let code = FunctionsErrorCode(rawValue: nsError.code)
-                let message = nsError.localizedDescription
-                print("Firebase Functions Error: \(message)")
-                return (false, message)
-            }
+            return (false, "Failed to trigger alert: \(error.localizedDescription)")
+        }
+    }
+    
+    func exportAttendance(buildingID: String, eventID: String) async -> (Bool, String?) {
+        let data: [String: Any] = [
+            "buildingId": buildingID,
+            "eventId": eventID
+        ]
+        
+        do {
+            let result = try await functions.httpsCallable("exportAttendanceReport").call(data)
             
-            print("Unknown Error: \(error.localizedDescription)")
-            return (false, error.localizedDescription)
+            if let responseData = result.data as? [String: Any],
+               let downloadUrl = responseData["downloadUrl"] as? String {
+                return (true, downloadUrl)
+            } else {
+                return (false, "Failed to get download URL from server.")
+            }
+        } catch {
+            print("Error exporting report: \(error.localizedDescription)")
+            return (false, nil)
         }
     }
 }

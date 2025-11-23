@@ -13,7 +13,7 @@ internal import Combine
 @MainActor
 class HomeViewModel: ObservableObject {
     
-    @Published var joinedBuildings: [CreateBuildingViewModel.Building] = []
+    @Published var joinedBuildings: [Building] = []
     @Published var completedEvents: [Event] = []
     
     @Published var errorMessage: String?
@@ -125,7 +125,7 @@ class HomeViewModel: ObservableObject {
                 guard let self = self, let documents = snapshot?.documents else { return }
                 
                 self.joinedBuildings = documents.compactMap {
-                    try? $0.data(as: CreateBuildingViewModel.Building.self)
+                    try? $0.data(as: Building.self)
                 }
             }
         

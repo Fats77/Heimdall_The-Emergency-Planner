@@ -5,7 +5,6 @@
 //  Created by Kemas Deanova on 17/11/25.
 //
 
-
 import SwiftUI
 import FirebaseFirestore
 import FirebaseStorage
@@ -53,8 +52,11 @@ class CreateBuildingViewModel: ObservableObject {
     func saveBuilding() async -> Bool {
         isLoading = true
         
-        // 1. Get current user ID
-        guard let userID = Auth.auth().currentUser?.uid else {
+        // 1. Get current user details
+        guard let userID = Auth.auth().currentUser?.uid,
+              let userName = Auth.auth().currentUser?.displayName,
+              let userEmail = Auth.auth().currentUser?.email
+        else {
             self.errorMessage = "You must be logged in to create a building."
             self.showError = true
             self.isLoading = false
@@ -69,12 +71,12 @@ class CreateBuildingViewModel: ObservableObject {
             return false
         }
         
-        var buildingPhotoURL: String?
+        var buildingImageURL: String?
         
         // 3. Upload Photo (if one was selected)
         if let image = selectedImage {
             do {
-                buildingPhotoURL = try await uploadPhoto(image: image, for: userID)
+                buildingImageURL = try await uploadPhoto(image: image, for: userID)
             } catch {
                 self.errorMessage = "Error uploading photo: \(error.localizedDescription)"
                 self.showError = true
@@ -90,22 +92,28 @@ class CreateBuildingViewModel: ObservableObject {
             let buildingID = newBuildingRef.documentID
             let inviteCode = generateInviteCode() // Generate unique code
             
-            // Create the building document
+            // Create the building document (FIX: Removed adminUserIDs field)
             let newBuilding = Building(
                 id: buildingID,
                 name: name,
-                description: description,
-                buildingPhotoURL: buildingPhotoURL,
-                adminUserIDs: [userID],
+                description: description.isEmpty ? nil : description,
+                buildingImageURL: buildingImageURL,
+                buildingMapURL: nil,
                 inviteCode: inviteCode
             )
             
             // Save the building
             try newBuildingRef.setData(from: newBuilding)
             
-            // 5. Add user as the admin in the 'members' subcollection
-            let memberData = ["role": "admin"]
-            try await newBuildingRef.collection("members").document(userID).setData(memberData)
+            // 5. Add user as the admin in the 'members' subcollection (FIX: Used uid field)
+            let adminMember = BuildingMember(
+                id: userID,
+                displayName: userName,
+                email: userEmail,
+                role: .admin,
+                uid: userID // Use uid field
+            )
+            try await newBuildingRef.collection("members").document(userID).setData(from: adminMember)
             
             // 6. Add this building to the user's list of joined buildings
             try await db.collection("users").document(userID).updateData([
@@ -130,7 +138,7 @@ class CreateBuildingViewModel: ObservableObject {
         }
         
         let photoID = UUID().uuidString
-        let storageRef = storage.reference().child("building_photos/\(photoID).jpg")
+        let storageRef = storage.reference().child("building_photos/temp/\(userID)/\(photoID).jpg")
         
         // Upload the data
         _ = try await storageRef.putDataAsync(imageData)
@@ -144,15 +152,5 @@ class CreateBuildingViewModel: ObservableObject {
     private func generateInviteCode() -> String {
         let letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
         return String((0..<6).map{ _ in letters.randomElement()! })
-    }
-    
-    // You'll need a simple `Building` struct, perhaps in a `Models.swift` file
-    struct Building: Codable, Identifiable {
-        @DocumentID var id: String? = UUID().uuidString
-        var name: String
-        var description: String?
-        var buildingPhotoURL: String?
-        var adminUserIDs: [String]
-        var inviteCode: String
     }
 }

@@ -10,7 +10,7 @@ import SwiftUI
 
 struct TriggerAlertView: View {
     
-    let building: CreateBuildingViewModel.Building
+    let building: Building
     let emergency: EmergencyType
     
     // This state tracks the "hold" progress

@@ -4,5 +4,11 @@
 <dict>
 	<key>NSLocationTemporaryUsageDescriptionDictionary</key>
 	<dict/>
+	<key>EmergencyLocation</key>
+	<string>Required to accurately record a precise GPS coordinate when setting an assembly point for a drill or emergency plan.</string>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>location</string>
+	</array>
 </dict>
 </plist>
