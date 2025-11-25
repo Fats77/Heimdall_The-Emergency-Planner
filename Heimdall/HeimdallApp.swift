@@ -82,7 +82,7 @@ extension AppDelegate: MessagingDelegate {
 @main
 struct HeimdallApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
-    
+    @AppStorage("isOnboarding") var isOnboarding: Bool = true
     @StateObject private var authService = AuthService()
     
     init() {
@@ -91,12 +91,16 @@ struct HeimdallApp: App {
     
     var body: some Scene {
         WindowGroup {
-            if authService.currentUser != nil {
-                HomeView()
-                    .environmentObject(authService)
+            if isOnboarding {
+                OnboardingView()
             } else {
-                LoginView()
-                    .environmentObject(authService)
+                if authService.currentUser != nil {
+                    HomeView()
+                        .environmentObject(authService)
+                } else {
+                    LoginView()
+                        .environmentObject(authService)
+                }
             }
         }
     }

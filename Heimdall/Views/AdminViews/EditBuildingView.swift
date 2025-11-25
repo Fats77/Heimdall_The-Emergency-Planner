@@ -135,7 +135,7 @@ struct EditBuildingView: View {
                             .font(.headline.bold())
                             .frame(maxWidth: .infinity)
                             .padding()
-                            .background(accentColor)
+                            .background(Color.theme)
                             .foregroundColor(.white)
                             .cornerRadius(12)
                             .shadow(color: accentColor.opacity(0.4), radius: 6, x: 0, y: 3)

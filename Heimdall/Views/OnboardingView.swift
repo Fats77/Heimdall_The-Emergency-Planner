@@ -167,7 +167,7 @@ struct OnboardingItemView: View {
                     .opacity(0.5)
                     .font(.title2)
                 
-                Text("Your comprehensive disaster preparedness and emergency response platform. Train smarter, plan faster.")
+                Text("Your comprehensive disaster preparedness and emergency response platform.")
                     .multilineTextAlignment(.center)
                     .opacity(0.7)
                     .font(.title3)

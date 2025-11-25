@@ -53,11 +53,11 @@ struct BuildingDetailView: View {
             VStack {
                 headerSection
                 Divider()
-//                    .opacity(0.5)
                 emergencySection
                 floorsSection
             }
             .padding()
+            .padding(.bottom, 50)
         }
         .ignoresSafeArea()
         .navigationTitle("Emergency Plan")
@@ -172,8 +172,7 @@ struct BuildingDetailView: View {
                 }
             } else {
                 if viewModel.allEmergencyTypes.isEmpty {
-                    Text("No emergency types added yet.")
-                        .foregroundColor(.secondary)
+                    EmptyStateView(symbol: "light.beacon.max", text: "No emergency types added yet.")
                 }
                 
                 LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 6) {
@@ -209,11 +208,14 @@ struct BuildingDetailView: View {
     }
 
     private var floorsSection: some View {
-        Section(header: Text("Floors")) {
+        VStack (alignment: .leading) {
             if viewModel.floors.isEmpty {
-                Text("No floors added yet.")
-                    .foregroundColor(.secondary)
+                EmptyStateView(symbol: "square.on.square", text: "No floors added yet.")
             }
+            
+            Text("Floors")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
 
             ForEach(viewModel.floors) { floor in
                 NavigationLink(destination: FloorDetailView(building: building, floor: floor)) {
@@ -222,11 +224,16 @@ struct BuildingDetailView: View {
                             .foregroundColor(.black)
                         Text(floor.name)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 6)
-                    .padding(.horizontal, 12)
+                    .padding()
+                    .frame(maxWidth: .infinity, alignment: .leading)
                     .background(.white)
-//                    .clipShape(RoundedRectangle(cornerRadius: 20).stroke(.gray.opacity(0.3), lineWidth: 1))
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
+                    .overlay{
+                        RoundedRectangle(cornerRadius: 20)
+                            .stroke(.black.opacity(0.3), lineWidth: 1)
+                    }
+                    .tint(.black)
+                    //                    .clipShape(RoundedRectangle(cornerRadius: 20).stroke(.gray.opacity(0.3), lineWidth: 1))
                 }
             }
             .onDelete(perform: deleteFloor)
@@ -327,9 +334,7 @@ struct TriggerAlertArea: View {
                     }
                 }
             } else {
-                Text("Select emergency type first")
-                    .font(.callout).foregroundColor(.secondary)
-//                    .frame(width: 150, height: 150)
+                EmptyStateView(symbol: "exclamationmark.triangle", text: "Select emergency type first")
             }
         }
         .frame(maxWidth: .infinity)

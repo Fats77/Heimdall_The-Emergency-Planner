@@ -61,8 +61,7 @@ struct FloorDetailView: View {
             // MARK: - Emergency Plans Section
             Section(header: Text("Emergency Plans")) {
                 if viewModel.emergencyTypes.isEmpty {
-                    Text("No emergency plans added yet.")
-                        .foregroundColor(.secondary)
+                    EmptyStateView(symbol: "calendar", text: "No emergency plans added yet.")
                 }
                 
                 ForEach(viewModel.emergencyTypes) { emergencyType in
@@ -91,16 +90,16 @@ struct FloorDetailView: View {
                             }
                         }
                         
-                        // Edit Button (Admin/Coordinator)
-                        if viewModel.isAdmin || viewModel.isCoordinator {
-                            Button {
-                                isEditingEmergencyType = emergencyType
-                            } label: {
-                                Image(systemName: "pencil.circle.fill")
-                                    .foregroundColor(.gray)
-                                    .font(.title2)
-                            }
-                        }
+//                        // Edit Button (Admin/Coordinator)
+//                        if viewModel.isAdmin || viewModel.isCoordinator {
+//                            Button {
+//                                isEditingEmergencyType = emergencyType
+//                            } label: {
+//                                Image(systemName: "pencil.circle.fill")
+//                                    .foregroundColor(.gray)
+//                                    .font(.title2)
+//                            }
+//                        }
                     }
                 }
                 .onDelete(perform: viewModel.deleteEmergencyType)
