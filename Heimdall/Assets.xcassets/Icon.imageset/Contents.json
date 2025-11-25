@@ -1,0 +1,23 @@
+{
+  "images" : [
+    {
+      "filename" : "Heimdall_App Icon_SF25.png",
+      "idiom" : "universal",
+      "scale" : "1x"
+    },
+    {
+      "filename" : "Heimdall_App Icon_SF25 1.png",
+      "idiom" : "universal",
+      "scale" : "2x"
+    },
+    {
+      "filename" : "Heimdall_App Icon_SF25 2.png",
+      "idiom" : "universal",
+      "scale" : "3x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}

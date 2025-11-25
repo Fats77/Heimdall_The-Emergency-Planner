@@ -11,6 +11,7 @@ import Kingfisher
 internal import Combine
 
 struct InstructionDetailView: View {
+    
     let buildingID: String
     let emergencyTypeID: String
 
@@ -19,6 +20,9 @@ struct InstructionDetailView: View {
     // ViewModels must be accessible across the file
     @StateObject private var viewModel: InstructionDetailViewModel
     @StateObject private var editViewModel: InstructionsListViewModel
+    
+    // FIX: Add state variable for showing the instruction editor
+    @State private var isShowingEditSheet = false
     
     init(buildingID: String, emergencyTypeID: String) {
         self.buildingID = buildingID
@@ -52,20 +56,32 @@ struct InstructionDetailView: View {
                 selectedFloor = first
             }
         }
-        // FIX: Equatable conformance on EmergencyType resolves this compiler error
         .onChange(of: viewModel.emergencyType) { newType in
              editViewModel.loadInitialInstructions(from: newType?.instructions)
         }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 HStack {
-                    EditButton()
+                    // FIX: This button is now fully implemented to show the editor
                     Button {
-                        // TODO: Implement isShowingEditSheet = true here
+                        isShowingEditSheet = true
                     } label: {
-                        Image(systemName: "plus")
+                        Image(systemName: "pencil.circle.fill")
                     }
+                    
+                    // We only show the "Add" button if we are in the editing flow (which is now triggered by the pencil button)
                 }
+            }
+        }
+        // FIX: Add the sheet to present the editing interface
+        .sheet(isPresented: $isShowingEditSheet) {
+            NavigationStack {
+                // We pass the editViewModel so the InstructionsListView can read/write the list
+                InstructionsListView(
+                    buildingID: buildingID,
+                    floorID: selectedFloor?.id ?? "", // Best guess floorID if needed by children
+                    emergencyType: viewModel.emergencyType!
+                )
             }
         }
     }
@@ -115,6 +131,7 @@ private extension InstructionDetailView {
     
     var instructionsList: some View {
         Group {
+            // Display instructions from the live edit VM copy
             let steps = editViewModel.editableSteps
             
             if steps.isEmpty {
@@ -122,12 +139,11 @@ private extension InstructionDetailView {
                     .foregroundColor(.secondary)
                     .padding()
             } else {
-                // FIX: List is preferred over VStack for .onDelete/.onMove support
                 List {
                     ForEach(steps) { InstructionStepCard(step: $0) }
                 }
                 .listStyle(.plain)
-                .frame(height: CGFloat(steps.count) * 100 + 50) // Estimate height
+                .frame(height: CGFloat(steps.count) * 100 + 50)
             }
         }
     }

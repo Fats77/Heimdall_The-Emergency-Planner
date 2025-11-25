@@ -150,7 +150,7 @@ struct OnboardingItemView: View {
                     .frame(width: geometry.size.width / 1.2)
                     .padding(.top)
             } else {
-                Image(.helmet)
+                Image(.icon)
                     .resizable()
                     .scaledToFit()
                     .clipShape(RoundedRectangle(cornerRadius: 30))
@@ -167,7 +167,7 @@ struct OnboardingItemView: View {
                     .opacity(0.5)
                     .font(.title2)
                 
-                Text("Your comprehensive disaster preparedness and emergency response platform")
+                Text("Your comprehensive disaster preparedness and emergency response platform. Train smarter, plan faster.")
                     .multilineTextAlignment(.center)
                     .opacity(0.7)
                     .font(.title3)

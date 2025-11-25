@@ -193,9 +193,7 @@ struct MyPlansSection: View {
             
             // Cards List
             if joinedBuildings.isEmpty {
-                Text("Tap 'Join Plan' or 'Create Plan' to get started.")
-                    .foregroundColor(.secondary)
-                    .padding(.horizontal)
+                EmptyStateView(symbol: "building.2", text: "Tap 'Join Plan' or 'Create Plan' to get started.")
             } else {
                 ForEach(joinedBuildings) { building in
                     NavigationLink(destination: BuildingDetailView(building: building)) {
@@ -284,19 +282,17 @@ struct HistorySection: View {
                 Text("History")
                     .font(.title2.bold())
             }
-            .padding(.horizontal)
             
             // List of History Items
             if events.isEmpty {
-                Text("No completed drills or events yet.")
-                    .foregroundColor(.secondary)
-                    .padding(.horizontal)
+                EmptyStateView(symbol: "newspaper", text: "No completed drills or events yet.")
             } else {
                 ForEach(events) { event in
                     HistoryCard(event: event)
                 }
             }
         }
+        .padding(.horizontal)
         .padding(.bottom, 30)
         .frame(maxWidth: .infinity, alignment: .leading)
     }

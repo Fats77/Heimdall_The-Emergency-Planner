@@ -9,6 +9,7 @@ import Foundation
 import FirebaseFirestore
 import FirebaseStorage
 internal import Combine
+import SwiftUI
 
 @MainActor
 class InstructionsListViewModel: ObservableObject {
@@ -35,7 +36,22 @@ class InstructionsListViewModel: ObservableObject {
         self.editableSteps = steps?.sorted { $0.step < $1.step } ?? []
     }
     
-    // ... (rest of the ViewModel methods remain the same) ...
+    // MARK: - List Management (FIXED Signatures)
+    
+    /// Called by .onDelete (takes IndexSet)
+    func deleteStep(at offsets: IndexSet) {
+        editableSteps.remove(atOffsets: offsets)
+    }
+    
+    /// Called by .onMove (takes IndexSet, Int)
+    func moveStep(from source: IndexSet, to destination: Int) {
+        editableSteps.move(fromOffsets: source, toOffset: destination)
+        // Note: Changes are persisted only when user taps "Save Changes"
+    }
+    
+    // ... (rest of the ViewModel methods remain the same, including uploadPhoto and saveChanges) ...
+    
+    // The rest of the VM methods are assumed to be present and correct from prior steps.
     
     func uploadPhoto(image: UIImage, for buildingID: String) async -> String? {
         guard let imageData = image.jpegData(compressionQuality: 0.8) else {
