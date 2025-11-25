@@ -8,7 +8,7 @@
 import Foundation
 import FirebaseFirestore
 
-struct Floor: Identifiable, Codable {
+struct Floor: Identifiable, Codable, Hashable {
     @DocumentID var id: String?
     var name: String
     var floorMapURL: String?

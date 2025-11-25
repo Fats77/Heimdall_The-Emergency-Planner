@@ -53,7 +53,10 @@ class HomeViewModel: ObservableObject {
     }
     
     func joinBuilding(with code: String) async {
-        guard let userID = Auth.auth().currentUser?.uid else { return }
+        guard let userID = Auth.auth().currentUser?.uid,
+              let userDisplayName = Auth.auth().currentUser?.displayName,
+              let userEmail = Auth.auth().currentUser?.email
+        else { return }
         
         let query = db.collection("buildings").whereField("inviteCode", isEqualTo: code).limit(to: 1)
         
@@ -67,7 +70,7 @@ class HomeViewModel: ObservableObject {
             let buildingID = buildingDoc.documentID
             let buildingRef = buildingDoc.reference
             
-            let memberData = ["role": "member"]
+            let memberData = ["role": "member", "displayName": userDisplayName, "email": userEmail, "uid": userID]
             try await buildingRef.collection("members").document(userID).setData(memberData)
             
             try await db.collection("users").document(userID).updateData([

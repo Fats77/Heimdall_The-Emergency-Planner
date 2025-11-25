@@ -24,204 +24,70 @@ struct BuildingDetailView: View {
     @State private var isShowingLeaveAlert = false
     @State private var isEventActive: Bool = false
     
-    // FIX: Initializer must take the correct Building model
+    @State private var copySymbol = "document.on.document"
+    
     init(building: Building) {
         self.building = building
         _viewModel = StateObject(wrappedValue: BuildingDetailViewModel(buildingID: building.id!))
     }
     
     var body: some View {
-        List {
-            // MARK: - Header Section
-            Section {
-                VStack(alignment: .leading, spacing: 4) {
-                    
-                    HStack(alignment: .top, spacing: 10){
-                        VStack {
-                            if let photoURLString = building.buildingImageURL, let url = URL(string: photoURLString) {
-                                KFImage(url)
-                                    .resizable()
-                                    .scaledToFill()
-                                    .frame(width: 50, height: 50)
-                                    .clipped()
-                                    .cornerRadius(10)
-                            } else {
-                                Image(systemName: "building.2.fill")
-                                    .resizable()
-                                    .padding(8)
-                                    .frame(width: 50, height: 50)
-                                    .foregroundColor(.white)
-                                    .background(Color.theme.opacity(0.7))
-                                    .cornerRadius(10)
-                            }
-                        }
-                        Text(building.name)
-                            .font(.largeTitle.bold())
-                            .foregroundColor(.primary)
-                    }
-                    
-                    VStack(alignment: .leading, spacing: 5){
-                        Text("Description")
-                            .font(.subheadline)
-                            .foregroundColor(.secondary)
-                        
-                        Text(building.description ?? "Emergency Evacuation Plan")
-                            .font(.body)
-                    }
-                    
-                    
-                    // Participant Count (Admin/Coordinator Only)
-                    if viewModel.isManager {
-                        Text("\(viewModel.memberCount) participants")
-                            .font(.subheadline)
-                            .padding()
-                            .clipShape(Capsule())
-                            .overlay{
-                                Capsule().stroke(.black, lineWidth: 1)
-                            }
-                    }
-                }
-                .frame(maxWidth: .infinity, alignment: .leading)
-            }
-            .listRowBackground(Color.clear)
-//            .listRowInsets(EdgeInsets())
-            
-            // MARK: - Select Emergency Type (UI based on image_821a8c.png)
-            Section(header: Text("Select Emergency Type")) {
-                
-                if isEventActive {
-                    // --- Show Stop Button if Active ---
-                    VStack(spacing: 20) {
-                        Text("Active Alert: \(selectedEmergency?.prettyType ?? "N/A")")
-                            .font(.title2.bold())
-                            .foregroundColor(.red)
-                        
-                        SlideToStopView(buildingID: building.id!, selectedEmergency: $selectedEmergency, isEventActive: $isEventActive)
-                    }
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets())
-
-                } else {
-                    
-                    if viewModel.allEmergencyTypes.isEmpty {
-                        Text("No emergency types added yet.")
-                            .foregroundColor(.secondary)
-                    }
-                    
-                    LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 6) {
-                        ForEach(viewModel.allEmergencyTypes) { type in
-                            EmergencyTypeButton(
-                                emergencyType: type,
-                                isSelected: type.id == selectedEmergency?.id
-                            )
-                            .onTapGesture {
-                                selectedEmergency = type
-                            }
-                        }
-                    }
-                    .listRowBackground(Color.clear)
-                    .listRowInsets(EdgeInsets())
-                    .padding(.vertical, 10)
-                }
-                
-                // Warning Box
-                Text("⚠️ Triggering this alert will start the emergency drill and notify all plan members immediately.")
-                    .font(.caption)
-                    .foregroundColor(.orange)
+        ScrollView {
+            if let photoURLString = building.buildingImageURL,
+               let url = URL(string: photoURLString) {
+                KFImage(url)
+                    .resizable()
+                    .scaledToFill()
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 200)
+                    .clipped()
+            } else {
+                Image(systemName: "building.2.fill")
+                    .resizable()
                     .padding(8)
                     .frame(maxWidth: .infinity)
-                    .background(Color.orange.opacity(0.1))
-                    .cornerRadius(8)
-                    .listRowBackground(Color.clear)
-                
-                // Hold-to-Alert Button
-                // FIX: Ensure TriggerAlertArea takes the correct Building model
-                TriggerAlertArea(selectedEmergency: $selectedEmergency, building: building, isEventActive: $isEventActive)
-                    .listRowBackground(Color.clear)
+                    .frame(height: 200)
+                    .foregroundColor(.white)
+                    .background(Color.theme)
             }
-            
-            // MARK: - Floors Section (Hidden if we go to a ViewPlan page)
-            Section(header: Text("Floors")) {
-                if viewModel.floors.isEmpty {
-                    Text("No floors added yet.")
-                        .foregroundColor(.secondary)
-                }
-                
-                ForEach(viewModel.floors) { floor in
-                    NavigationLink(destination: FloorDetailView(building: building, floor: floor)) {
-                        HStack {
-                            Image(systemName: "map")
-                                .foregroundColor(.accentColor)
-                            Text(floor.name)
-                        }
-                    }
-                }
-                .onDelete(perform: deleteFloor)
+            VStack {
+                headerSection
+                Divider()
+//                    .opacity(0.5)
+                emergencySection
+                floorsSection
             }
+            .padding()
         }
+        .ignoresSafeArea()
         .navigationTitle("Emergency Plan")
         .navigationBarTitleDisplayMode(.inline)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarTrailing) {
-                Menu {
-                    // Admin actions menu
-                    if viewModel.isAdmin {
-                        Button { isEditingBuilding = true } label: { Label("Edit Plan Details", systemImage: "pencil") }
-                        Button(role: .destructive) { isShowingDeleteAlert = true } label: { Label("Delete Plan", systemImage: "trash") }
-                    }
-                    // --- LEAVE BUTTON ACTION ---
-                    Button(role: .destructive) {
-                        isShowingLeaveAlert = true // Trigger confirmation alert
-                    } label: { Label("Leave Plan", systemImage: "figure.walk.motion") }
-                } label: {
-                    Image(systemName: "ellipsis.circle")
-                }
-            }
-            // Add Floor button (only for Admins)
-            if viewModel.isAdmin {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button { isAddingFloor = true } label: { Image(systemName: "plus") }
-                }
-            }
-            
-            if viewModel.isManager {
-                ToolbarItem(placement: .navigationBarTrailing) {
-                    Button {
-                        isShowingMembers = true
-                    } label: {
-                        HStack {
-                            Image(systemName: "person.3.fill").foregroundColor(.theme)
-                        }
-                    }
-                }
-            }
+        .toolbar { toolbarContent }
+        .toolbarBackgroundVisibility(.visible, for: .navigationBar)
+        .sheet(isPresented: $isAddingFloor) {
+            NavigationStack { CreateFloorView(buildingID: building.id!) { _ in viewModel.fetchFloors() } }
         }
-        // Sheets and Alerts
-        .sheet(isPresented: $isAddingFloor) { NavigationStack { CreateFloorView(buildingID: building.id!) { _ in viewModel.fetchFloors() } } }
-        .sheet(isPresented: $isEditingBuilding) { NavigationStack { EditBuildingView(building: building) } }
-        .sheet(isPresented: $isShowingMembers) { NavigationStack { ManageMembersView(buildingID: building.id!) } }
-        
-        // --- DELETE BUILDING ALERT ---
+        .sheet(isPresented: $isEditingBuilding) {
+            NavigationStack { EditBuildingView(building: building) }
+        }
+        .sheet(isPresented: $isShowingMembers) {
+            NavigationStack { ManageMembersView(buildingID: building.id!) }
+        }
         .alert("Confirm Deletion", isPresented: $isShowingDeleteAlert) {
             Button("Delete", role: .destructive) { viewModel.deleteBuilding(building: building) }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Are you sure you want to delete this plan? This action cannot be undone.")
         }
-        
-        // --- LEAVE PLAN ALERT (NEW) ---
         .alert("Confirm Leave", isPresented: $isShowingLeaveAlert) {
-            Button("Leave", role: .destructive) {
-                Task { await viewModel.leavePlan() } // Call the new async function
-            }
+            Button("Leave", role: .destructive) { Task { await viewModel.leavePlan() } }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("Are you sure you want to leave \(building.name)? You will lose access to all current and future drills.")
         }
-        .onAppear {
-            viewModel.onAppear()
-        }
+        .onAppear { viewModel.onAppear() }
     }
+
     
     // Placeholder to satisfy signature, actual logic belongs in ViewModel
     func deleteFloor(at offsets: IndexSet) {
@@ -232,6 +98,169 @@ struct BuildingDetailView: View {
     // Helper functions from previous iteration (for EmergencyType display)
     func iconFor(_ type: String) -> String { /* ... */ return "flame.fill" }
     func colorFor(_ type: String) -> Color { /* ... */ return .red }
+    
+    private var headerSection: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .top, spacing: 10) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(building.name)
+                        .font(.largeTitle.bold())
+                        .foregroundColor(.primary)
+
+                    HStack(alignment: .top){
+                        Text("Invite Code: \(building.inviteCode)")
+                            .font(.subheadline)
+                            .foregroundStyle(.gray)
+                        
+                        Button {
+                            UIPasteboard.general.string = building.inviteCode
+                            copySymbol = "checkmark"
+                            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+                                self.copySymbol = "document.on.document"
+                            }
+                        } label: {
+                            Image(systemName: copySymbol)
+                                .font(.footnote)
+                                .foregroundStyle(.gray)
+                        }
+                        
+                        Spacer()
+                        
+                        Button{
+                            isShowingMembers = true
+                        }label:{
+                            HStack{
+                                Image(systemName: "person.2")
+                                Text("\(viewModel.memberCount) members")
+                            }
+                            .tint(.black)
+                            .font(.footnote)
+                            .underline()
+                        }
+                    }
+                }
+            }
+        }
+        .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    
+    private var emergencySection: some View {
+        VStack(alignment: .leading) {
+            Text("Select Emergency")
+                .font(.subheadline)
+                .foregroundStyle(.secondary)
+            
+            Text("⚠️ Triggering this alert will start the emergency drill and notify all plan members immediately.")
+                .font(.caption)
+                .foregroundColor(.orange)
+                .padding(8)
+                .frame(maxWidth: .infinity)
+                .background(Color.orange.opacity(0.1))
+                .cornerRadius(8)
+            
+            if isEventActive {
+                VStack(spacing: 20) {
+                    Text("Active Alert: \(selectedEmergency?.prettyType ?? "N/A")")
+                        .font(.title2.bold())
+                        .foregroundColor(.red)
+
+                    SlideToStopView(
+                        buildingID: building.id!,
+                        selectedEmergency: $selectedEmergency,
+                        isEventActive: $isEventActive
+                    )
+                }
+            } else {
+                if viewModel.allEmergencyTypes.isEmpty {
+                    Text("No emergency types added yet.")
+                        .foregroundColor(.secondary)
+                }
+                
+                LazyVGrid(columns: Array(repeating: GridItem(.flexible()), count: 3), spacing: 6) {
+                    ForEach(viewModel.allEmergencyTypes) { type in
+                        EmergencyTypeButton(
+                            emergencyType: type,
+                            isSelected: type.id == selectedEmergency?.id
+                        )
+                        .onTapGesture {
+                            selectedEmergency = type
+                        }
+                    }
+                }
+                .padding(.vertical, 10)
+            }
+
+            TriggerAlertArea(
+                selectedEmergency: $selectedEmergency,
+                building: building,
+                isEventActive: $isEventActive
+            )
+            
+            VStack(alignment: .leading, spacing: 5) {
+                Text("Description")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+
+                Text(building.description ?? "Emergency Evacuation Plan")
+                    .font(.body)
+            }
+            .padding(.vertical)
+        }
+    }
+
+    private var floorsSection: some View {
+        Section(header: Text("Floors")) {
+            if viewModel.floors.isEmpty {
+                Text("No floors added yet.")
+                    .foregroundColor(.secondary)
+            }
+
+            ForEach(viewModel.floors) { floor in
+                NavigationLink(destination: FloorDetailView(building: building, floor: floor)) {
+                    HStack {
+                        Image(systemName: "map")
+                            .foregroundColor(.black)
+                        Text(floor.name)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 6)
+                    .padding(.horizontal, 12)
+                    .background(.white)
+//                    .clipShape(RoundedRectangle(cornerRadius: 20).stroke(.gray.opacity(0.3), lineWidth: 1))
+                }
+            }
+            .onDelete(perform: deleteFloor)
+        }
+    }
+
+    private var toolbarContent: some ToolbarContent {
+        ToolbarItemGroup(placement: .navigationBarTrailing) {
+            Menu {
+                if viewModel.isAdmin {
+                    Button { isEditingBuilding = true } label: {
+                        Label("Edit Plan Details", systemImage: "pencil")
+                    }
+                    
+                    Button(role: .destructive) { isShowingDeleteAlert = true } label: {
+                        Label("Delete Plan", systemImage: "trash")
+                    }
+                }
+                Button(role: .destructive) { isShowingLeaveAlert = true } label: {
+                    Label("Leave Plan", systemImage: "figure.walk.motion")
+                }
+            } label: {
+                Image(systemName: "ellipsis.circle")
+            }
+
+            if viewModel.isAdmin {
+                Button { isAddingFloor = true } label: {
+                    Image(systemName: "plus")
+                }
+            }
+        }
+    }
+
+
 }
 
 // MARK: - Trigger Alert Area Component
@@ -254,16 +283,18 @@ struct TriggerAlertArea: View {
             if let emergency = selectedEmergency {
                 ZStack {
                     // 1. Progress Indicator Track (Ring)
-                    Circle()
+                    RoundedRectangle(cornerRadius: 20)
                         .stroke(Color.gray.opacity(0.3), lineWidth: 10)
-                        .frame(width: 150, height: 150)
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 100)
                     
                     // 2. Progress Indicator Fill
-                    Circle()
+                    RoundedRectangle(cornerRadius: 20)
                         .trim(from: 0.0, to: holdProgress)
                         .stroke(Color.theme, style: StrokeStyle(lineWidth: 10, lineCap: .round))
-                        .frame(width: 150, height: 150)
-                        .rotationEffect(.degrees(-90))
+                        .frame(maxWidth: .infinity)
+                        .frame(height: 100)
+//                        .rotationEffect(.degrees(-90))
                         .animation(.linear(duration: 0.05), value: holdProgress)
                     
                     // 3. Center Content
@@ -275,9 +306,10 @@ struct TriggerAlertArea: View {
                             .font(.caption.bold())
                             .foregroundColor(.white)
                     }
-                    .frame(width: 140, height: 140)
+                    .frame(maxWidth: .infinity)
+                    .frame(height: 100)
                     .background(Color.theme.opacity(0.8))
-                    .clipShape(Circle())
+                    .clipShape(RoundedRectangle(cornerRadius: 20))
                     .scaleEffect(isHolding ? 1.05 : 1.0)
                 }
                 .gesture(combinedGesture)
@@ -296,7 +328,8 @@ struct TriggerAlertArea: View {
                 }
             } else {
                 Text("Select emergency type first")
-                    .font(.callout).foregroundColor(.secondary).frame(width: 150, height: 150)
+                    .font(.callout).foregroundColor(.secondary)
+//                    .frame(width: 150, height: 150)
             }
         }
         .frame(maxWidth: .infinity)

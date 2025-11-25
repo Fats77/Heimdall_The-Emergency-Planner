@@ -5,9 +5,10 @@
 //  Created by Kemas Deanova on 17/11/25.
 //
 
-
 import SwiftUI
 internal import Combine
+import CoreLocation
+import FirebaseFirestore
 
 struct ActiveEmergencyView: View {
     
@@ -20,6 +21,7 @@ struct ActiveEmergencyView: View {
     @StateObject private var viewModel: ActiveEmergencyViewModel
     
     // The single instance of our location manager
+    // Note: Must be StateObject for persistence, used directly for permission/tracking calls
     @StateObject private var locationManager = LocationManager()
     
     // We create the ViewModel and pass it the location manager's event publisher
@@ -54,14 +56,14 @@ struct ActiveEmergencyView: View {
         }
         .onDisappear {
             // Only stop tracking if the event is over or they are safe
-            if viewModel.userStatus == AttendeeStatus.safe || viewModel.eventStatus == Event.Status.completed {
+            if viewModel.userStatus == .safe || viewModel.eventStatus == .completed {
                 locationManager.stopTracking()
                 locationManager.stopMonitoringAllRegions()
             }
         }
         // This is your feature: "we detected you near assembly point"
         .alert("Near Assembly Point", isPresented: $viewModel.showSafeCheckInPrompt, actions: {
-            Button("Yes, I am Safe") {
+            Button("Yes, Mark Me Safe") {
                 viewModel.markUserAsSafe()
             }
             Button("Not Yet", role: .cancel) {}
@@ -70,3 +72,4 @@ struct ActiveEmergencyView: View {
         })
     }
 }
+

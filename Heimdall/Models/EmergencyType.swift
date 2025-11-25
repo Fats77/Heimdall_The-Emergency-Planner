@@ -8,7 +8,7 @@
 import Foundation
 import FirebaseFirestore
 
-struct EmergencyType: Identifiable, Codable {
+struct EmergencyType: Identifiable, Codable , Equatable{
     @DocumentID var id: String?
     var type: String // "fire", "earthquake", "tsunami"
     var scheduleDay: Int
@@ -16,6 +16,7 @@ struct EmergencyType: Identifiable, Codable {
     var scheduleInterval: String // "every_month", etc.
     
     var assemblyPoints: [AssemblyPoint]?
+    var instructions: [InstructionStep]?
     
     var prettyType: String {
         type.capitalized
@@ -29,5 +30,9 @@ struct EmergencyType: Identifiable, Codable {
                 scheduleTime: "12:00",
                 scheduleInterval: "every_month"
             )
+        }
+    
+    static func == (lhs: EmergencyType, rhs: EmergencyType) -> Bool {
+            return lhs.id == rhs.id
         }
 }

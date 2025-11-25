@@ -47,131 +47,18 @@ const messaging = admin.messaging();
  * 4. Fetches their push notification (FCM) tokens.
  * 5. Sends a push notification to all members.
  */
-exports.triggerEmergencyAlert = functions.https.onCall(async (data, context) => {
-  
-  // --- 1. Authentication ---
-  if (!context.auth) {
-    throw new functions.https.HttpsError(
-      "unauthenticated",
-      "You must be logged in to trigger an alert."
-    );
-  }
-
-  const { buildingId, emergencyTypeId, emergencyTypeName } = data;
-  const uid = context.auth.uid;
-
-  // --- 2. Verify Admin Role ---
-  try {
-    const memberDoc = await db
-      .collection("buildings")
-      .doc(buildingId)
-      .collection("members")
-      .doc(uid)
-      .get();
-
-    if (!memberDoc.exists || memberDoc.data().role !== "admin") {
-      throw new functions.https.HttpsError(
-        "permission-denied",
-        "You must be an admin of this building to trigger an alert."
-      );
-    }
-  } catch (error) {
-    throw new functions.https.HttpsError("internal", error.message);
-  }
-
-  // --- 3. Create the Event Document ---
-  let eventRef;
-  try {
-    eventRef = await db
-      .collection("buildings")
-      .doc(buildingId)
-      .collection("events")
-      .add({
-        emergencyTypeID: emergencyTypeId,
-        eventName: `${emergencyTypeName} Alert`,
-        startTime: admin.firestore.FieldValue.serverTimestamp(),
-        endTime: null,
-        status: "active", // 'active' or 'completed'
-        triggeredBy: uid,
-        type: "alert", // 'alert' or 'drill'
-      });
-  } catch (error) {
-    throw new functions.https.HttpsError("internal", "Could not create event doc.");
-  }
-  
-  // --- 4. Get All Members ---
-  const membersSnapshot = await db
-    .collection("buildings")
-    .doc(buildingId)
-    .collection("members")
-    .get();
-  
-  const memberIds = membersSnapshot.docs.map((doc) => doc.id);
-
-  // --- 5. Get Member FCM Tokens ---
-  // We must store the FCM token in the user's main doc, e.g., /users/{userID}
-  const tokenPromises = memberIds.map((id) => db.collection("users").doc(id).get());
-  const userDocs = await Promise.all(tokenPromises);
-  
-  const tokens = userDocs
-    .map((doc) => doc.data().fcmToken) // Assumes you store a token here!
-    .filter((token) => token); // Remove any null/undefined tokens
-
-  if (tokens.length === 0) {
-    console.log("No FCM tokens found for members. Event created but no notifications sent.");
-    return { status: "success", message: "Event started, but no members to notify." };
-  }
-
-  // --- 6. Send Push Notifications ---
-  try {
-    // This is the payload for the push notification
-    const payload = {
-      notification: {
-        title: "🚨 EMERGENCY ALERT 🚨",
-        body: `An active ${emergencyTypeName} alert has been triggered for your building.`,
-      },
-      data: {
-        // These fields let your app know what to do when it's tapped
-        type: "EMERGENCY_ALERT",
-        buildingId: buildingId,
-        eventId: eventRef.id,
-        emergencyTypeID: emergencyTypeId,
-      },
-      apns: { // Apple-specific settings
-        payload: {
-          aps: {
-            sound: "default", // Use a default sound
-            'content-available': 1, // Wakes app in background
-          },
-        },
-        headers: {
-          'apn-priority': '10', // High priority
-        },
-      },
-      tokens: tokens, // The array of tokens to send to
-    };
-
-    const response = await messaging.sendMulticast(payload);
-    console.log("Notification response:", response);
-
-    return { status: "success", message: "Alert successfully triggered!" };
-
-  } catch (error) {
-    console.error("Error sending push notifications:", error);
-    throw new functions.https.HttpsError("internal", "Event created, but failed to send notifications.");
-  }
-});
 
 // --- 1. [HTTPS Callable] Trigger Emergency Alert (Admin Only) ---
 exports.triggerEmergencyAlert = functions.https.onCall(async (data, context) => {
   
   // --- Authentication ---
   if (!context.auth) {
-    throw new functions.https.HttpsError(
-      "unauthenticated",
-      "You must be logged in to trigger an alert."
-    );
-  }
+      // IF THIS IS RETURNED, THE TOKEN IS BAD OR MISSING.
+      throw new functions.https.HttpsError(
+        "unauthenticated",
+        "CONTEXT AUTH IS EMPTY (TOKEN NOT SENT OR INVALID)."
+      );
+    }
 
   const { buildingId, emergencyTypeId, emergencyTypeName } = data;
   const uid = context.auth.uid;

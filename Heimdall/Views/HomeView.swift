@@ -89,6 +89,7 @@ struct HomeView: View {
             Text(message)
         })
         .onAppear {
+            let _ = EventService.shared
             viewModel.fetchJoinedBuildings()
             viewModel.fetchCompletedEvents()
             NotificationService.shared.requestNotificationPermission()
@@ -232,7 +233,7 @@ struct BuildingCard: View {
                         .padding(8)
                         .frame(width: 50, height: 50)
                         .foregroundColor(.white)
-                        .background(Color.theme.opacity(0.7))
+                        .background(Color.theme)
                         .cornerRadius(10)
                 }
             }
@@ -247,6 +248,7 @@ struct BuildingCard: View {
                 Text(building.description ?? "Plan details available.")
                     .font(.caption)
                     .foregroundColor(.secondary)
+                    .lineLimit(1)
                 
 //                HStack(spacing: 15) {
 //                    Text("?? participants")
@@ -256,6 +258,12 @@ struct BuildingCard: View {
 //                .padding(.top, 4)
             }
             Spacer()
+            HStack(alignment: .center){
+                Image(systemName: "chevron.right")
+                    .font(.subheadline)
+                    .foregroundStyle(.gray)
+            }
+            .frame(maxHeight: .infinity, alignment: .center)
         }
         .padding()
         .background(Color(.systemBackground))

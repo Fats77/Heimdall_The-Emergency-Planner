@@ -29,7 +29,8 @@ struct YouAreSafeView: View {
             Button {
                 viewModel.markUserAsNotSafe() // Allow un-doing
             } label: {
-                Text("I Am Not Safe")
+                Text("Mark Me As Missing")
+                    .foregroundColor(.red)
             }
         }
     }

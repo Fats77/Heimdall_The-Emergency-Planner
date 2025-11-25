@@ -23,10 +23,11 @@ class ActiveEmergencyViewModel: ObservableObject {
     // --- UI State ---
     @Published var showSafeCheckInPrompt = false
     
-    // --- Private Properties ---
-    private let buildingID: String
-    private let eventID: String
-    private let emergencyTypeID: String
+    // --- Public/Internal Properties (FIXED) ---
+    // These IDs must be accessible by the View for navigation and deep-linking.
+    let buildingID: String // CHANGED from private let
+    let eventID: String // CHANGED from private let
+    let emergencyTypeID: String // CHANGED from private let
     private let userID: String
     private var db = Firestore.firestore()
     private var geofenceCancellable: AnyCancellable?
@@ -73,7 +74,8 @@ class ActiveEmergencyViewModel: ObservableObject {
             // FIX: Use a Collection Group Query to find the EmergencyType document
             // anywhere under this building, avoiding the hard-coded floorID path.
             let querySnapshot = try await db.collectionGroup("emergencyTypes")
-                .whereField("emergencyTypeID", isEqualTo: emergencyTypeID)
+                .whereField(FieldPath.documentID(), isGreaterThanOrEqualTo: "buildings/\(buildingID)/")
+                .whereField(FieldPath.documentID(), isLessThan: "buildings/\(buildingID)0")
                 .getDocuments()
 
             // Find the specific document by its ID within the query results
@@ -88,10 +90,13 @@ class ActiveEmergencyViewModel: ObservableObject {
 
             // 2. Setup Geofences if points exist
             if let points = fetchedEmergency.assemblyPoints {
+                // Feature 6: Set radius to 5 meters
+                let geofenceRadius: CLLocationDistance = 5.0
+                
                 for (index, point) in points.enumerated() {
                     locationManager.startMonitoring(
                         assemblyPoint: .init(latitude: point.latitude, longitude: point.longitude),
-                        radius: 100, // 100 meters radius
+                        radius: geofenceRadius,
                         identifier: "assembly_point_\(eventID)_\(index)"
                     )
                 }

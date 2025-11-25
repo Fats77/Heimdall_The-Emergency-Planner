@@ -50,6 +50,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				"GoogleService-Info.plist",
+				Views/ActiveAlertLandingView.swift,
 				Views/ActiveEmergencyView.swift,
 				Views/AdminViews/BuildingDetailView.swift,
 				Views/AdminViews/CreateBuildingView.swift,
@@ -67,6 +68,7 @@
 				Views/CoordinatorViews/AttendanceView.swift,
 				Views/EmergencyInProgressView.swift,
 				Views/HomeView.swift,
+				Views/InstructionDetailView.swift,
 				Views/JoinOrCreateView.swift,
 				Views/OnboardingView.swift,
 				Views/YouAreSafeView.swift,
@@ -77,6 +79,7 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				"GoogleService-Info.plist",
+				Views/ActiveAlertLandingView.swift,
 				Views/ActiveEmergencyView.swift,
 				Views/AdminViews/BuildingDetailView.swift,
 				Views/AdminViews/CreateBuildingView.swift,
@@ -94,6 +97,7 @@
 				Views/CoordinatorViews/AttendanceView.swift,
 				Views/EmergencyInProgressView.swift,
 				Views/HomeView.swift,
+				Views/InstructionDetailView.swift,
 				Views/JoinOrCreateView.swift,
 				Views/OnboardingView.swift,
 				Views/YouAreSafeView.swift,

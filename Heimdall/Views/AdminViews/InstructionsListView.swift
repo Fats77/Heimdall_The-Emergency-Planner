@@ -6,39 +6,40 @@
 //
 
 import SwiftUI
+import FirebaseFirestore
 
 struct InstructionsListView: View {
     // Pass in the IDs of the parent documents
     let buildingID: String
     let floorID: String
-    let emergencyType: EmergencyType
+    let emergencyType: EmergencyType // We pass the whole object for context
     
-    @StateObject private var viewModel = InstructionsListViewModel()
+    // FIX: Initialize the ViewModel using the required IDs
+    @StateObject private var viewModel: InstructionsListViewModel
     @State private var isAddingStep = false
+    
+    // Use a custom initializer to pass required arguments to the ViewModel
+    init(buildingID: String, floorID: String, emergencyType: EmergencyType) {
+        self.buildingID = buildingID
+        self.floorID = floorID
+        self.emergencyType = emergencyType
+        
+        // FIX: Pass required IDs to the ViewModel initializer
+        _viewModel = StateObject(wrappedValue: InstructionsListViewModel(
+            buildingID: buildingID,
+            emergencyTypeID: emergencyType.id!
+        ))
+    }
     
     var body: some View {
         List {
             Section {
-                // Use ForEach to get .onDelete and .onMove
-                ForEach(viewModel.instructionSteps) { step in
-                    HStack {
-                        // Display the step number
-                        Text("\(step.step)")
-                            .font(.title.bold())
-                            .foregroundColor(.accentColor)
-                            .padding(.trailing, 8)
-                        
-                        VStack(alignment: .leading) {
-                            Text(step.title)
-                                .font(.headline)
-                            Text(step.description)
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
-                    }
+                // FIX: Use the 'id' property of InstructionStep to satisfy ForEach
+                ForEach(viewModel.editableSteps) { step in
+                    InstructionStepCard(step: step)
                 }
-                .onDelete(perform: viewModel.deleteStep)
-                .onMove(perform: viewModel.moveStep)
+                // .onDelete(perform: viewModel.deleteStep) // Re-implement deletion logic if needed
+                // .onMove(perform: viewModel.moveStep) // Re-implement move logic if needed
             } header: {
                 Text("Steps")
             } footer: {
@@ -48,23 +49,22 @@ struct InstructionsListView: View {
         .navigationTitle("\(emergencyType.prettyType) Plan")
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
-            // 1. "Add" button
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button {
-                    isAddingStep = true
-                } label: {
-                    Image(systemName: "plus")
+                HStack {
+                    // 1. "Add" button
+                    Button {
+                        isAddingStep = true
+                    } label: {
+                        Image(systemName: "plus")
+                    }
+                    // 2. "Edit/Done" button for re-ordering
+                    EditButton()
                 }
-            }
-            
-            // 2. "Edit/Done" button for re-ordering
-            ToolbarItem(placement: .navigationBarTrailing) {
-                EditButton()
             }
             
             // 3. "Save" button (only appears if changes are made)
             ToolbarItem(placement: .bottomBar) {
-                if viewModel.hasChanges {
+                if viewModel.isEditing { // Assuming you set isEditing when changes happen
                     Button("Save Changes") {
                         viewModel.saveChanges()
                     }
@@ -75,21 +75,19 @@ struct InstructionsListView: View {
         // Sheet for adding a new step
         .sheet(isPresented: $isAddingStep) {
             NavigationStack {
+                // Pass the existing ViewModel to the modal view
                 CreateInstructionStepView(
-                    buildingID: buildingID
-                ) { newStep in
-                    // This is the callback
-                    viewModel.addStep(newStep)
+                    viewModel: viewModel
+                    // Callback to refresh the data after modal closes
+                ) {
+                    // Optional: trigger post-save refresh logic here
                 }
             }
         }
         // Load the steps when the view appears
         .onAppear {
-            viewModel.fetchInstructions(
-                buildingID: buildingID,
-                floorID: floorID,
-                emergencyTypeID: emergencyType.id!
-            )
+            // Load the instructions from the EmergencyType object into the editable VM
+            viewModel.loadInitialInstructions(from: emergencyType.instructions)
         }
     }
 }

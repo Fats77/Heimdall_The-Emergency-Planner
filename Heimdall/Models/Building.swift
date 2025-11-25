@@ -26,6 +26,7 @@ struct BuildingMember: Codable, Identifiable {
     let email: String
     var role: Role
     let uid: String
+    var profilePhotoURL: String?
     
     // --- ADD CaseIterable ---
     enum Role: String, Codable, CaseIterable {

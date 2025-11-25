@@ -21,6 +21,7 @@ class AssemblyPointViewModel: ObservableObject {
     
     @Published var errorMessage: String?
     @Published var showError = false
+    @Published var isLoading = false // FIX: Added isLoading status
     
     private var locationManager = LocationManager()
     private var locationCancellable: AnyCancellable?
@@ -35,38 +36,47 @@ class AssemblyPointViewModel: ObservableObject {
         locationCancellable = locationManager.$userLocation
             .compactMap { $0?.coordinate }
             .sink { [weak self] coordinate in
-                guard self?.newName.isEmpty == false else { return }
+                // Only update fields if we were actively requesting location (i.e., isLoading is true)
+                guard self?.isLoading == true else { return }
                 self?.newLatString = String(coordinate.latitude)
                 self?.newLonString = String(coordinate.longitude)
+                
+                // Stop tracking once we have a valid location
                 self?.locationManager.stopTracking()
+                self?.isLoading = false
             }
     }
     
     func useCurrentLocation() {
+        isLoading = true
         if newName.isEmpty { newName = "Current Location" }
         
         let status = locationManager.permissionStatus
         if status == .denied || status == .restricted {
             showError(message: "Location access is denied. Please enable 'When In Use' in Settings.")
+            isLoading = false
             return
         }
         
-        // --- THE FIX ---
-        // 1. Request temporary high accuracy using the public manager property
-        locationManager.manager.requestTemporaryFullAccuracyAuthorization(withPurposeKey: "EmergencyLocation")
-        
-        // 2. Start general tracking (which now correctly sets background flags)
-        locationManager.startTracking()
-        
-        showError(message: "Fetching GPS location...")
-        
-        // If location is immediately available, use it
-        if let location = locationManager.userLocation?.coordinate {
-            newLatString = String(location.latitude)
-            newLonString = String(location.longitude)
-            self.errorMessage = nil
-            self.showError = false
-            locationManager.stopTracking()
+        Task {
+            locationManager.requestLocationPermission()
+            // We expose the manager property via a specific public function in the LocationManager
+            // to avoid the original error, so we must access it through that exposed layer:
+            locationManager.manager.requestTemporaryFullAccuracyAuthorization(withPurposeKey: "EmergencyLocation")
+            locationManager.startTracking()
+            
+//            showError(message: "Fetching GPS location...")
+            
+            // Check for immediate location (simulators often return instantly)
+            if let location = locationManager.userLocation?.coordinate {
+                newLatString = String(location.latitude)
+                newLonString = String(location.longitude)
+                self.errorMessage = nil
+                self.showError = false
+                locationManager.stopTracking()
+                isLoading = false
+            }
+            // If not immediate, the onReceive closure handles the update.
         }
     }
     

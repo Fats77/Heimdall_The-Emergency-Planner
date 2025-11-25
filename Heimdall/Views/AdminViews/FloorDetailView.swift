@@ -10,34 +10,51 @@ import SwiftUI
 import Kingfisher
 import FirebaseFirestore
 
+
+// Assumed global models: Floor, EmergencyType, Building
+
 struct FloorDetailView: View {
-    // Pass in the building and floor
+    
     let building: Building
     let floor: Floor
     
     @StateObject private var viewModel = FloorDetailViewModel()
     @State private var isAddingEmergencyType = false
+    @State private var isShowingMapFullscreen = false
+    @State private var isEditingEmergencyType: EmergencyType? // Used for editing an existing type
     
     var body: some View {
         List {
             // MARK: - Floor Map Section
             Section {
-                if let mapURLString = floor.floorMapURL, let url = URL(string: mapURLString) {
-                    KFImage(url)
-                        .resizable()
-                        .scaledToFit()
-                        .frame(maxWidth: .infinity, maxHeight: 300)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(12)
-                        .listRowInsets(EdgeInsets())
-                } else {
-                    Text("No map has been uploaded for this floor.")
-                        .foregroundColor(.secondary)
-                        .frame(maxWidth: .infinity, maxHeight: 150)
-                        .background(Color(.systemGray6))
-                        .cornerRadius(12)
-                        .listRowInsets(EdgeInsets())
+                VStack(alignment: .leading) {
+                    // Display Floor Name / Level (instead of Main Entrance)
+                    if !floor.name.isEmpty {
+                        Text(floor.name)
+                            .font(.headline)
+                            .foregroundColor(.secondary)
+                            .padding(.bottom, 8)
+                    }
+                    
+                    if let mapURLString = floor.floorMapURL, let url = URL(string: mapURLString) {
+                        KFImage(url)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxWidth: .infinity, maxHeight: 300)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(12)
+                            .onTapGesture {
+                                isShowingMapFullscreen = true // Tap to zoom
+                            }
+                    } else {
+                        Text("No map has been uploaded for this floor.")
+                            .foregroundColor(.secondary)
+                            .frame(maxWidth: .infinity, maxHeight: 150)
+                            .background(Color(.systemGray6))
+                            .cornerRadius(12)
+                    }
                 }
+                .listRowInsets(EdgeInsets())
             }
             .listRowBackground(Color.clear)
             
@@ -49,22 +66,39 @@ struct FloorDetailView: View {
                 }
                 
                 ForEach(viewModel.emergencyTypes) { emergencyType in
-                    // Tapping here will go to the Instructions list
-                    NavigationLink(destination: Text("Instructions for \(emergencyType.prettyType)")) {
-                        HStack {
-                            Image(systemName: iconFor(emergencyType.type))
-                                .font(.headline)
-                                .foregroundColor(.white)
-                                .frame(width: 30, height: 30)
-                                .background(colorFor(emergencyType.type))
-                                .cornerRadius(8)
-                            
-                            VStack(alignment: .leading) {
-                                Text(emergencyType.prettyType)
+                    HStack {
+                        // FIX: Navigation Link to Instruction Detail View
+                        NavigationLink(destination: InstructionDetailView(
+                            buildingID: building.id!,
+                            emergencyTypeID: emergencyType.id!
+                        )) {
+                            HStack {
+                                Image(systemName: iconFor(emergencyType.type))
                                     .font(.headline)
-                                Text("Drill: \(emergencyType.scheduleInterval.capitalized)")
-                                    .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(.white)
+                                    .frame(width: 30, height: 30)
+                                    .background(colorFor(emergencyType.type))
+                                    .cornerRadius(8)
+                                
+                                VStack(alignment: .leading) {
+                                    Text(emergencyType.prettyType)
+                                        .font(.headline)
+                                    Text("Drill: \(emergencyType.scheduleInterval.capitalized.replacingOccurrences(of: "_", with: " "))")
+                                        .font(.caption)
+                                        .foregroundColor(.secondary)
+                                }
+                                Spacer()
+                            }
+                        }
+                        
+                        // Edit Button (Admin/Coordinator)
+                        if viewModel.isAdmin || viewModel.isCoordinator {
+                            Button {
+                                isEditingEmergencyType = emergencyType
+                            } label: {
+                                Image(systemName: "pencil.circle.fill")
+                                    .foregroundColor(.gray)
+                                    .font(.title2)
                             }
                         }
                     }
@@ -80,24 +114,37 @@ struct FloorDetailView: View {
                 } label: {
                     Image(systemName: "plus")
                 }
+                .disabled(!viewModel.isAdmin) // Only Admins can add new plans
+            }
+            ToolbarItem(placement: .navigationBarLeading) {
+                EditButton() // Enables swipe-to-delete for Admins
             }
         }
-        // This is where we link your refactored view!
+        // Sheet for Adding New Emergency Plan
         .sheet(isPresented: $isAddingEmergencyType) {
             NavigationStack {
-                // Pass in the IDs
                 CreateEmergencyTypeView(
                     buildingID: building.id!,
                     floorID: floor.id!
                 ) { newType in
-                    // This is our callback
+                    // Callback to refresh the list when a new type is saved
                     viewModel.emergencyTypes.append(newType)
                 }
             }
         }
+        // Sheet for Editing Existing Emergency Plan
+        .sheet(item: $isEditingEmergencyType) { emergencyType in
+            NavigationStack {
+                // TODO: Implement EditEmergencyTypeView to pre-populate data
+                Text("Edit View for \(emergencyType.prettyType)")
+            }
+        }
+        .sheet(isPresented: $isShowingMapFullscreen) {
+            // Full-screen map view implementation
+            FullscreenMapView(floor: floor)
+        }
         .onAppear {
-            // Load the data when the view appears
-            viewModel.fetchEmergencyTypes(buildingID: building.id!, floorID: floor.id!)
+            viewModel.fetchData(buildingID: building.id!, floorID: floor.id!)
         }
     }
     
@@ -107,7 +154,7 @@ struct FloorDetailView: View {
     func iconFor(_ type: String) -> String {
         switch type {
         case "fire": return "flame.fill"
-        case "earthquake": return "house.fill" // iOS 16+ has "water.waves.and.arrow.down"
+        case "earthquake": return "house.fill"
         case "tsunami": return "water.waves"
         default: return "exclamationmark.triangle.fill"
         }
@@ -121,5 +168,26 @@ struct FloorDetailView: View {
         case "tsunami": return .blue
         default: return .gray
         }
+    }
+}
+
+// MARK: - Fullscreen Map View
+struct FullscreenMapView: View {
+    let floor: Floor
+    
+    var body: some View {
+        ZStack {
+            if let mapURLString = floor.floorMapURL, let url = URL(string: mapURLString) {
+                KFImage(url)
+                    .resizable()
+                    .scaledToFit()
+                    .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    .background(Color.black)
+            } else {
+                Text("Map not available.")
+                    .foregroundColor(.white)
+            }
+        }
+        .ignoresSafeArea()
     }
 }

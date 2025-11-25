@@ -58,7 +58,7 @@ struct ProfileView: View {
                                 Image(systemName: "pencil.circle.fill")
                                     .font(.title)
                                     .foregroundColor(.accentColor)
-                                    .background(Color(.systemBackground))
+                                    .background(Color(.theme))
                                     .clipShape(Circle())
                             }
                         }

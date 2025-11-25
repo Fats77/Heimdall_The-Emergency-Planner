@@ -55,7 +55,8 @@ class CreateBuildingViewModel: ObservableObject {
         // 1. Get current user details
         guard let userID = Auth.auth().currentUser?.uid,
               let userName = Auth.auth().currentUser?.displayName,
-              let userEmail = Auth.auth().currentUser?.email
+              let userEmail = Auth.auth().currentUser?.email,
+              let profilePhotoURL = Auth.auth().currentUser?.photoURL
         else {
             self.errorMessage = "You must be logged in to create a building."
             self.showError = true
@@ -111,7 +112,8 @@ class CreateBuildingViewModel: ObservableObject {
                 displayName: userName,
                 email: userEmail,
                 role: .admin,
-                uid: userID // Use uid field
+                uid: userID,
+                profilePhotoURL: profilePhotoURL.absoluteString
             )
             try await newBuildingRef.collection("members").document(userID).setData(from: adminMember)
             

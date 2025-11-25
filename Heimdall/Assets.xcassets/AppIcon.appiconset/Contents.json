@@ -1,7 +1,7 @@
 {
   "images" : [
     {
-      "filename" : "drill_icon_1.png",
+      "filename" : "Heimdall_App Icon_SF25.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -13,7 +13,7 @@
           "value" : "dark"
         }
       ],
-      "filename" : "drill_icon_1 1.png",
+      "filename" : "Heimdall_App Icon_SF25 1.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
@@ -25,7 +25,7 @@
           "value" : "tinted"
         }
       ],
-      "filename" : "drill_icon_1 2.png",
+      "filename" : "Heimdall_App Icon_SF25 2.png",
       "idiom" : "universal",
       "platform" : "ios",
       "size" : "1024x1024"
